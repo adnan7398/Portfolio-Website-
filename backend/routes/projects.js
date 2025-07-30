@@ -1,157 +1,186 @@
 const express = require('express');
-const multer = require('multer');
-const cloudinary = require('cloudinary').v2;
+const router = express.Router();
 const Project = require('../models/Project');
 const auth = require('../middleware/auth');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
-const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() });
-
-// Configure Cloudinary (but don't fail if credentials are invalid)
-try {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-  });
-  console.log('Cloudinary configured successfully');
-} catch (error) {
-  console.error('Cloudinary configuration error:', error.message);
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Upload project (admin only)
+// Configure multer for local file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadsDir);
+  },
+  filename: function (req, file, cb) {
+    // Create unique filename with timestamp
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    // Accept only image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
+});
+
+// POST /api/projects - Create new project (admin only)
 router.post('/', auth, upload.single('image'), async (req, res) => {
   try {
     const { title, description, techStack, githubUrl, liveUrl } = req.body;
-    
+
     // Validate required fields
     if (!title || !description) {
-      return res.status(400).json({ message: 'Title and description are required' });
+      return res.status(400).json({ error: 'Title and description are required' });
     }
-    
+
+    // Handle image upload
     let imageUrl = '';
-    
     if (req.file) {
-      try {
-        // Try to upload to Cloudinary
-        const result = await new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream(
-            { resource_type: 'image' }, 
-            (error, result) => {
-              if (error) reject(error);
-              else resolve(result);
-            }
-          );
-          stream.end(req.file.buffer);
-        });
-        imageUrl = result.secure_url;
-        console.log('Image uploaded to Cloudinary successfully');
-      } catch (cloudinaryError) {
-        console.error('Cloudinary upload failed:', cloudinaryError.message);
-        // Use a better placeholder image if Cloudinary fails
-        imageUrl = `https://via.placeholder.com/400x300/3B82F6/FFFFFF?text=${encodeURIComponent(title)}`;
-        console.log('Using placeholder image due to Cloudinary error');
-      }
+      // Create URL for the uploaded image
+      imageUrl = `/uploads/${req.file.filename}`;
     } else {
-      return res.status(400).json({ message: 'Image is required' });
+      // Use a default placeholder image
+      imageUrl = '/uploads/placeholder.svg';
     }
-    
-    // Create and save the project
+
+    // Parse techStack if it's a string
+    let techArray = [];
+    if (techStack) {
+      if (typeof techStack === 'string') {
+        techArray = techStack.split(',').map(tech => tech.trim());
+      } else if (Array.isArray(techStack)) {
+        techArray = techStack;
+      }
+    }
+
     const project = new Project({
       title,
       description,
       imageUrl,
-      techStack: techStack ? techStack.split(',').map(tech => tech.trim()) : [],
-      githubUrl,
-      liveUrl,
+      techStack: techArray,
+      githubUrl: githubUrl || '',
+      liveUrl: liveUrl || ''
     });
-    
-    const savedProject = await project.save();
-    console.log('Project saved successfully:', savedProject.title);
-    res.status(201).json(savedProject);
-    
-  } catch (err) {
-    console.error('Project creation error:', err);
-    res.status(500).json({ 
-      message: 'Failed to create project', 
-      error: err.message 
-    });
+
+    await project.save();
+    console.log(`Project saved successfully: ${title}`);
+    res.status(201).json(project);
+  } catch (error) {
+    console.error('Error creating project:', error);
+    res.status(500).json({ error: 'Failed to create project' });
   }
 });
 
-// Get all projects (public)
+// GET /api/projects - Get all projects (public)
 router.get('/', async (req, res) => {
   try {
     const projects = await Project.find().sort({ createdAt: -1 });
     res.json(projects);
-  } catch (err) {
-    console.error('Get projects error:', err);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    res.status(500).json({ error: 'Failed to fetch projects' });
   }
 });
 
-// Get single project (public)
+// GET /api/projects/:id - Get single project (public)
 router.get('/:id', async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
-    if (!project) return res.status(404).json({ message: 'Project not found' });
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
     res.json(project);
-  } catch (err) {
-    console.error('Get single project error:', err);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {
+    console.error('Error fetching project:', error);
+    res.status(500).json({ error: 'Failed to fetch project' });
   }
 });
 
-// Update project (admin only)
+// PUT /api/projects/:id - Update project (admin only)
 router.put('/:id', auth, upload.single('image'), async (req, res) => {
   try {
     const { title, description, techStack, githubUrl, liveUrl } = req.body;
-    let updateData = { 
-      title, 
-      description, 
-      techStack: techStack ? techStack.split(',').map(tech => tech.trim()) : [], 
-      githubUrl, 
-      liveUrl 
+
+    // Validate required fields
+    if (!title || !description) {
+      return res.status(400).json({ error: 'Title and description are required' });
+    }
+
+    const updateData = {
+      title,
+      description,
+      githubUrl: githubUrl || '',
+      liveUrl: liveUrl || ''
     };
-    
-    if (req.file) {
-      try {
-        const result = await new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream(
-            { resource_type: 'image' }, 
-            (error, result) => {
-              if (error) reject(error);
-              else resolve(result);
-            }
-          );
-          stream.end(req.file.buffer);
-        });
-        updateData.imageUrl = result.secure_url;
-        console.log('Updated image uploaded to Cloudinary successfully');
-      } catch (cloudinaryError) {
-        console.error('Cloudinary update upload failed:', cloudinaryError.message);
-        // Use a better placeholder image if Cloudinary fails
-        updateData.imageUrl = `https://via.placeholder.com/400x300/3B82F6/FFFFFF?text=${encodeURIComponent(title)}`;
-        console.log('Using placeholder image due to Cloudinary error');
+
+    // Handle techStack
+    if (techStack) {
+      if (typeof techStack === 'string') {
+        updateData.techStack = techStack.split(',').map(tech => tech.trim());
+      } else if (Array.isArray(techStack)) {
+        updateData.techStack = techStack;
       }
     }
-    
-    const updated = await Project.findByIdAndUpdate(req.params.id, updateData, { new: true });
-    res.json(updated);
-  } catch (err) {
-    console.error('Update project error:', err);
-    res.status(500).json({ message: 'Server error' });
+
+    // Handle image upload
+    if (req.file) {
+      updateData.imageUrl = `/uploads/${req.file.filename}`;
+    }
+
+    const project = await Project.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    );
+
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    res.json(project);
+  } catch (error) {
+    console.error('Error updating project:', error);
+    res.status(500).json({ error: 'Failed to update project' });
   }
 });
 
-// Delete project (admin only)
+// DELETE /api/projects/:id - Delete project (admin only)
 router.delete('/:id', auth, async (req, res) => {
   try {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    // Delete the image file if it exists and is not the placeholder
+    if (project.imageUrl && !project.imageUrl.includes('placeholder.svg')) {
+      const imagePath = path.join(__dirname, '..', project.imageUrl);
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
+      }
+    }
+
     await Project.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Project deleted' });
-  } catch (err) {
-    console.error('Delete project error:', err);
-    res.status(500).json({ message: 'Server error' });
+    res.json({ message: 'Project deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    res.status(500).json({ error: 'Failed to delete project' });
   }
 });
 

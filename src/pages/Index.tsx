@@ -3,6 +3,7 @@ import Hero from "@/components/Hero";
 import ProjectCard from "@/components/ProjectCard";
 import SkillBadge from "@/components/SkillBadge";
 import { useEffect, useRef } from "react";
+import { Star } from 'lucide-react';
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -183,7 +184,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* About Me Preview Section */}
       <section className="py-20 bg-gray-50">
         <div
           className="container mx-auto px-6 reveal-animation"
@@ -197,10 +197,17 @@ const Index = () => {
               </h2>
               <div className="w-20 h-1 bg-brand-blue mt-4 rounded" />
               <p className="mt-6 text-gray-600">
-                I'm a Computer Science student at Jamia Millia Islamia, passionate about building modern web applications. With expertise in the MERN stack and a focus on creating accessible, user-friendly interfaces, I strive to deliver high-quality code and exceptional user experiences.
+                I'm a Computer Science student at G B Pant DSEU Okhla 1 Campus, passionate about building modern web applications. With expertise in the MERN stack and a focus on creating accessible, user-friendly interfaces, I strive to deliver high-quality code and exceptional user experiences.
               </p>
               <p className="mt-4 text-gray-600">
-                I've solved over 350 DSA problems on LeetCode, which has significantly improved my problem-solving abilities and algorithmic thinking. My journey in tech is driven by curiosity and a continuous desire to learn and grow.
+                I've solved over 400 DSA problems on LeetCode 9& gfg. <br />
+                <span className="inline-flex items-center space-x-1">
+                <span>3</span>
+                <Star className="w-6 h-6 text-yellow-500" />
+              </span>
+                 at CodeChef,
+                 1200+ rating at Codeforces.
+                  <br />which has significantly improved my problem-solving abilities and algorithmic thinking. My journey in tech is driven by curiosity and a continuous desire to learn and grow.
               </p>
               <div className="mt-8">
                 <Link

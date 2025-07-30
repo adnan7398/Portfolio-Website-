@@ -24,7 +24,7 @@ const AdminDashboard = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState<'projects' | 'messages' | 'upload'>('projects');
+  const [tab, setTab] = useState<'projects' | 'messages' | 'upload' | 'profile'>('projects');
 
   // Project upload state
   const [uploadData, setUploadData] = useState({
@@ -38,6 +38,12 @@ const AdminDashboard = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [uploadSuccess, setUploadSuccess] = useState("");
+
+  // Profile upload state
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [profileUploading, setProfileUploading] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [profileSuccess, setProfileSuccess] = useState("");
 
   // Login handler
   const handleLogin = async (e: React.FormEvent) => {
@@ -99,83 +105,156 @@ const AdminDashboard = () => {
         headers: { Authorization: `Bearer ${getToken()}` },
       }).then(r => r.json()),
     ])
-      .then(([projects, messages]) => {
-        setProjects(projects);
-        setMessages(messages);
+      .then(([projectsData, messagesData]) => {
+        setProjects(projectsData);
+        setMessages(messagesData);
       })
+      .catch(err => console.error("Error fetching data:", err))
       .finally(() => setLoading(false));
   }, [isLoggedIn]);
 
-  // Project delete
+  // Delete project
   const handleDeleteProject = async (id: string) => {
-    if (!window.confirm("Delete this project?")) return;
-    await fetch(`${API_URL}/api/projects/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${getToken()}` },
-    });
-    setProjects(projects.filter(p => p._id !== id));
-  };
-
-  // Message delete
-  const handleDeleteMessage = async (id: string) => {
-    if (!window.confirm("Delete this message?")) return;
-    await fetch(`${API_URL}/api/messages/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${getToken()}` },
-    });
-    setMessages(messages.filter(m => m._id !== id));
-  };
-
-  // Mark message read/unread
-  const handleMarkRead = async (id: string, read: boolean) => {
-    await fetch(`${API_URL}/api/messages/${id}/read`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getToken()}`,
-      },
-      body: JSON.stringify({ read }),
-    });
-    setMessages(messages.map(m => m._id === id ? { ...m, read } : m));
-  };
-
-  // Project upload
-  const handleUploadChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, files } = e.target as any;
-    if (name === "image" && files && files[0]) {
-      setUploadData(d => ({ ...d, image: files[0] }));
-    } else {
-      setUploadData(d => ({ ...d, [name]: value }));
+    try {
+      await fetch(`${API_URL}/api/projects/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      setProjects(projects.filter(p => p._id !== id));
+    } catch (err) {
+      console.error("Error deleting project:", err);
     }
   };
+
+  // Delete message
+  const handleDeleteMessage = async (id: string) => {
+    try {
+      await fetch(`${API_URL}/api/messages/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      setMessages(messages.filter(m => m._id !== id));
+    } catch (err) {
+      console.error("Error deleting message:", err);
+    }
+  };
+
+  // Mark message as read/unread
+  const handleMarkRead = async (id: string, read: boolean) => {
+    try {
+      await fetch(`${API_URL}/api/messages/${id}/read`, {
+        method: "PATCH",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}` 
+        },
+        body: JSON.stringify({ read }),
+      });
+      setMessages(messages.map(m => 
+        m._id === id ? { ...m, read } : m
+      ));
+    } catch (err) {
+      console.error("Error updating message:", err);
+    }
+  };
+
+  // Handle upload form changes
+  const handleUploadChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    if (type === 'file') {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      setUploadData(prev => ({ ...prev, image: file || null }));
+    } else {
+      setUploadData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  // Handle project upload
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
+    setUploading(true);
     setUploadError("");
     setUploadSuccess("");
-    setUploading(true);
+
     try {
-      const form = new FormData();
-      form.append("title", uploadData.title);
-      form.append("description", uploadData.description);
-      form.append("techStack", uploadData.techStack);
-      form.append("githubUrl", uploadData.githubUrl);
-      form.append("liveUrl", uploadData.liveUrl);
-      if (uploadData.image) form.append("image", uploadData.image);
+      const formData = new FormData();
+      formData.append("title", uploadData.title);
+      formData.append("description", uploadData.description);
+      formData.append("techStack", uploadData.techStack);
+      formData.append("githubUrl", uploadData.githubUrl);
+      formData.append("liveUrl", uploadData.liveUrl);
+      if (uploadData.image) {
+        formData.append("image", uploadData.image);
+      }
+
       const res = await fetch(`${API_URL}/api/projects`, {
         method: "POST",
         headers: { Authorization: `Bearer ${getToken()}` },
-        body: form,
+        body: formData,
       });
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Upload failed");
-      setProjects([data, ...projects]);
-      setUploadSuccess("Project uploaded!");
-      setUploadData({ title: '', description: '', techStack: '', githubUrl: '', liveUrl: '', image: null });
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+
+      setUploadSuccess("Project uploaded successfully!");
+      setUploadData({
+        title: '',
+        description: '',
+        techStack: '',
+        githubUrl: '',
+        liveUrl: '',
+        image: null,
+      });
+      
+      // Refresh projects list
+      const projectsRes = await fetch(`${API_URL}/api/projects`);
+      const projectsData = await projectsRes.json();
+      setProjects(projectsData);
     } catch (err: any) {
       setUploadError(err.message || "Upload failed");
     } finally {
       setUploading(false);
     }
+  };
+
+  // Handle profile image upload
+  const handleProfileUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profileImage) {
+      setProfileError("Please select an image");
+      return;
+    }
+
+    setProfileUploading(true);
+    setProfileError("");
+    setProfileSuccess("");
+
+    try {
+      const formData = new FormData();
+      formData.append("profileImage", profileImage);
+
+      const res = await fetch(`${API_URL}/api/profile/upload`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${getToken()}` },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+
+      setProfileSuccess("Profile image uploaded successfully!");
+      setProfileImage(null);
+    } catch (err: any) {
+      setProfileError(err.message || "Upload failed");
+    } finally {
+      setProfileUploading(false);
+    }
+  };
+
+  // Handle profile image change
+  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    setProfileImage(file || null);
   };
 
   if (!isLoggedIn) {
@@ -217,6 +296,7 @@ const AdminDashboard = () => {
         <button onClick={() => setTab('projects')} className={`px-4 py-2 rounded ${tab === 'projects' ? 'bg-brand-blue text-white' : 'bg-gray-100'}`}>Projects</button>
         <button onClick={() => setTab('messages')} className={`px-4 py-2 rounded ${tab === 'messages' ? 'bg-brand-blue text-white' : 'bg-gray-100'}`}>Messages</button>
         <button onClick={() => setTab('upload')} className={`px-4 py-2 rounded ${tab === 'upload' ? 'bg-brand-blue text-white' : 'bg-gray-100'}`}>Upload Project</button>
+        <button onClick={() => setTab('profile')} className={`px-4 py-2 rounded ${tab === 'profile' ? 'bg-brand-blue text-white' : 'bg-gray-100'}`}>Profile Image</button>
       </div>
       {loading && <div>Loading...</div>}
       {tab === 'projects' && !loading && (
@@ -270,6 +350,29 @@ const AdminDashboard = () => {
             {uploadError && <div className="text-red-600">{uploadError}</div>}
             {uploadSuccess && <div className="text-green-600">{uploadSuccess}</div>}
             <button type="submit" className="w-full bg-brand-blue text-white py-2 rounded" disabled={uploading}>{uploading ? 'Uploading...' : 'Upload'}</button>
+          </form>
+        </div>
+      )}
+      {tab === 'profile' && (
+        <div>
+          <h3 className="text-xl font-semibold mb-4">Upload Profile Image</h3>
+          <form onSubmit={handleProfileUpload} className="space-y-4">
+            <input 
+              type="file" 
+              accept="image/*" 
+              onChange={handleProfileImageChange} 
+              className="w-full" 
+              required 
+            />
+            {profileError && <div className="text-red-600">{profileError}</div>}
+            {profileSuccess && <div className="text-green-600">{profileSuccess}</div>}
+            <button 
+              type="submit" 
+              className="w-full bg-brand-blue text-white py-2 rounded" 
+              disabled={profileUploading}
+            >
+              {profileUploading ? 'Uploading...' : 'Upload Profile Image'}
+            </button>
           </form>
         </div>
       )}

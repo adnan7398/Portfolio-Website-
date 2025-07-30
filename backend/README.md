@@ -1,42 +1,101 @@
 # Portfolio Backend API
 
+A Node.js/Express backend for the portfolio website with local file uploads, authentication, and email notifications.
+
+## Features
+
+- **Local File Uploads**: Images are stored locally in the `uploads/` directory
+- **Admin Authentication**: JWT-based authentication for admin features
+- **Project Management**: CRUD operations for portfolio projects
+- **Contact Messages**: Handle contact form submissions with email notifications
+- **Profile Image Management**: Upload and manage profile images
+- **Email Notifications**: Send emails for contact form submissions
+
 ## Setup
-1. Create a `.env` file with:
-   - MONGODB_URI
-   - JWT_SECRET
-   - CLOUDINARY_CLOUD_NAME
-   - CLOUDINARY_API_KEY
-   - CLOUDINARY_API_SECRET
-   - EMAIL_USER
-   - EMAIL_PASS
-2. Run `npm install`
-3. Start server: `node index.js` or `npx nodemon index.js`
+
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Environment Variables**:
+   Create a `.env` file in the backend directory with:
+   ```
+   MONGODB_URI=your-mongodb-connection-string
+   JWT_SECRET=your-super-secret-jwt-key
+   EMAIL_USER=your-email@gmail.com
+   EMAIL_PASS=your-gmail-app-password
+   PORT=3001
+   ```
+
+3. **Start the Server**:
+   ```bash
+   npx nodemon index.js
+   ```
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - Register admin account
+- `POST /api/auth/login` - Admin login
+- `GET /api/auth/me` - Get current admin info
+
+### Projects
+- `GET /api/projects` - Get all projects (public)
+- `GET /api/projects/:id` - Get single project (public)
+- `POST /api/projects` - Create project (admin only)
+- `PUT /api/projects/:id` - Update project (admin only)
+- `DELETE /api/projects/:id` - Delete project (admin only)
+
+### Messages
+- `POST /api/messages` - Submit contact message (public)
+- `GET /api/messages` - Get all messages (admin only)
+- `GET /api/messages/:id` - Get single message (admin only)
+- `PATCH /api/messages/:id/read` - Mark message as read/unread (admin only)
+- `DELETE /api/messages/:id` - Delete message (admin only)
+
+### Profile
+- `POST /api/profile/upload` - Upload profile image (admin only)
+- `GET /api/profile/image` - Get current profile image (public)
+
+## File Uploads
+
+Images are stored locally in the `uploads/` directory:
+- Project images: `/uploads/image-{timestamp}-{random}.{ext}`
+- Profile images: `/uploads/profile-{timestamp}-{random}.{ext}`
+- Static files are served at `/uploads/` endpoint
 
 ## Models
-- **Admin**: email, password (hashed)
-- **Project**: title, description, imageUrl, techStack, githubUrl, liveUrl, createdAt
-- **Message**: name, email, message, type (contact/hire), read, createdAt
 
-## Auth Endpoints
-- `POST /api/auth/register` — Register admin (one-time setup)
-- `POST /api/auth/login` — Login, returns JWT
-- `GET /api/auth/me` — Get current admin info (JWT required)
+### Admin
+- `email` (String, required, unique)
+- `password` (String, required, hashed)
 
-## Project Endpoints
-- `GET /api/projects` — List all projects
-- `GET /api/projects/:id` — Get single project
-- `POST /api/projects` — Create project (admin, image upload)
-- `PUT /api/projects/:id` — Update project (admin, image upload optional)
-- `DELETE /api/projects/:id` — Delete project (admin)
+### Project
+- `title` (String, required)
+- `description` (String, required)
+- `imageUrl` (String)
+- `techStack` (Array of Strings)
+- `githubUrl` (String)
+- `liveUrl` (String)
+- `createdAt` (Date, auto-generated)
 
-## Message Endpoints
-- `POST /api/messages` — Send contact/hire me message (public)
-- `GET /api/messages` — List all messages (admin)
-- `GET /api/messages/:id` — Get single message (admin)
-- `PATCH /api/messages/:id/read` — Mark as read/unread (admin)
-- `DELETE /api/messages/:id` — Delete message (admin)
+### Message
+- `name` (String, required)
+- `email` (String, required)
+- `message` (String, required)
+- `type` (String, enum: 'contact', 'hire')
+- `read` (Boolean, default: false)
+- `createdAt` (Date, auto-generated)
 
-## Notes
-- All admin endpoints require `Authorization: Bearer <token>` header.
-- Project image uploads use multipart/form-data with `image` field.
-- Contact/hire me messages send an email notification to the admin. 
+## Security
+
+- JWT authentication for admin routes
+- Password hashing with bcrypt
+- File type validation for uploads
+- File size limits (5MB)
+- CORS configuration for frontend integration
+
+## Development
+
+The server runs on port 3001 by default. The frontend should be configured to connect to `http://localhost:3001`. 

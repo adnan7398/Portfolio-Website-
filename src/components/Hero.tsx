@@ -1,11 +1,35 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 const Hero = () => {
-  const profilePicture = '/public/lovable-uploads/4efcce86-ee77-4aaf-8efc-e3579b1d0d2b.png';
+  const [profileImage, setProfileImage] = useState('/public/lovable-uploads/4efcce86-ee77-4aaf-8efc-e3579b1d0d2b.png');
+  const [imageError, setImageError] = useState(false);
   const backgroundRef = useRef<HTMLDivElement>(null);
+  
+  // Fetch profile image from backend
+  useEffect(() => {
+    const fetchProfileImage = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/profile/image`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.profileImageUrl) {
+            const fullImageUrl = `${API_URL}${data.profileImageUrl}`;
+            setProfileImage(fullImageUrl);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching profile image:', error);
+        // Keep the default image if fetch fails
+      }
+    };
+
+    fetchProfileImage();
+  }, []);
   
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -137,9 +161,18 @@ const Hero = () => {
             <div className="rotating-border p-1">
               <div className="relative rounded-xl overflow-hidden bg-white w-72 h-72 md:w-80 md:h-80 shadow-xl animate-scale-in">
                 <img 
-                  src={profilePicture} 
+                  src={profileImage} 
                   alt="Mohd Adnan" 
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    setImageError(true);
+                    // Fallback to default image
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/public/lovable-uploads/4efcce86-ee77-4aaf-8efc-e3579b1d0d2b.png';
+                  }}
+                  onLoad={() => {
+                    setImageError(false);
+                  }}
                 />
                 
                 {/* Tech labels */}
