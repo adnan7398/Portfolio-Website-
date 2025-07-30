@@ -24,6 +24,7 @@ const ProjectCard = ({
   liveUrl
 }: ProjectCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [imageError, setImageError] = useState(false);
   
   // Use technologies or techStack, whichever is available
   const techArray = technologies || techStack || [];
@@ -40,6 +41,12 @@ const ProjectCard = ({
   
   const finalImageUrl = getImageUrl(imageUrl);
   
+  // Create a placeholder image with the project title
+  const getPlaceholderImage = (title: string) => {
+    const encodedTitle = encodeURIComponent(title);
+    return `https://via.placeholder.com/400x300/3B82F6/FFFFFF?text=${encodedTitle}`;
+  };
+  
   return (
     <div 
       className="group relative overflow-hidden rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl bg-white"
@@ -48,7 +55,7 @@ const ProjectCard = ({
     >
       {/* Project Image */}
       <div className="h-48 overflow-hidden">
-        {imageUrl ? (
+        {imageUrl && !imageError ? (
           <img 
             src={finalImageUrl} 
             alt={title} 
@@ -57,6 +64,8 @@ const ProjectCard = ({
               isHovered && "scale-110"
             )}
             onError={(e) => {
+              console.error(`Failed to load image for ${title}:`, finalImageUrl);
+              setImageError(true);
               // Fallback to placeholder if image fails to load
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
@@ -65,10 +74,13 @@ const ProjectCard = ({
           />
         ) : null}
         {/* Fallback placeholder */}
-        <div className={`w-full h-full bg-gradient-to-r from-gray-200 to-gray-300 flex items-center justify-center text-gray-400 ${imageUrl ? 'hidden' : ''}`}>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 00-2-2V5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
+        <div className={`w-full h-full bg-gradient-to-r from-gray-200 to-gray-300 flex items-center justify-center text-gray-400 ${imageUrl && !imageError ? 'hidden' : ''}`}>
+          <div className="text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 00-2-2V5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <p className="text-xs text-gray-500">{title}</p>
+          </div>
         </div>
       </div>
       

@@ -165,6 +165,7 @@ const Hero = () => {
                   alt="Mohd Adnan" 
                   className="w-full h-full object-cover"
                   onError={(e) => {
+                    console.error('Profile image failed to load:', profileImage);
                     setImageError(true);
                     // Fallback to default image
                     const target = e.target as HTMLImageElement;
