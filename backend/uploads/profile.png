@@ -1,0 +1,8 @@
+<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="300" fill="#3B82F6"/>
+  <circle cx="150" cy="120" r="50" fill="white"/>
+  <path d="M50 250 Q150 200 250 250" stroke="white" stroke-width="3" fill="none"/>
+  <text x="150" y="280" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">
+    Profile Image
+  </text>
+</svg> 
