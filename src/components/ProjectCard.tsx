@@ -5,7 +5,8 @@ import { cn } from "@/lib/utils";
 interface ProjectCardProps {
   title: string;
   description: string;
-  technologies: string[];
+  technologies?: string[];
+  techStack?: string[];
   imageUrl?: string;
   githubUrl?: string;
   liveUrl?: string;
@@ -15,11 +16,15 @@ const ProjectCard = ({
   title,
   description,
   technologies,
+  techStack,
   imageUrl,
   githubUrl,
   liveUrl
 }: ProjectCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  
+  // Use technologies or techStack, whichever is available
+  const techArray = technologies || techStack || [];
   
   return (
     <div 
@@ -53,16 +58,18 @@ const ProjectCard = ({
         <p className="text-gray-600 mb-4 text-sm">{description}</p>
         
         {/* Technologies */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {technologies.map((tech, index) => (
-            <span 
-              key={index} 
-              className="px-3 py-1 text-xs font-medium bg-brand-blue/10 text-brand-blue rounded-full"
-            >
-              {tech}
-            </span>
-          ))}
-        </div>
+        {techArray.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {techArray.map((tech, index) => (
+              <span 
+                key={index} 
+                className="px-3 py-1 text-xs font-medium bg-brand-blue/10 text-brand-blue rounded-full"
+              >
+                {tech}
+              </span>
+            ))}
+          </div>
+        )}
         
         {/* Links */}
         <div className="flex items-center space-x-4">

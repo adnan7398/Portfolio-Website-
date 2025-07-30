@@ -48,8 +48,8 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
         console.log('Image uploaded to Cloudinary successfully');
       } catch (cloudinaryError) {
         console.error('Cloudinary upload failed:', cloudinaryError.message);
-        // Use a placeholder image if Cloudinary fails
-        imageUrl = 'https://via.placeholder.com/400x300?text=Project+Image';
+        // Use a better placeholder image if Cloudinary fails
+        imageUrl = `https://via.placeholder.com/400x300/3B82F6/FFFFFF?text=${encodeURIComponent(title)}`;
         console.log('Using placeholder image due to Cloudinary error');
       }
     } else {
@@ -130,8 +130,9 @@ router.put('/:id', auth, upload.single('image'), async (req, res) => {
         console.log('Updated image uploaded to Cloudinary successfully');
       } catch (cloudinaryError) {
         console.error('Cloudinary update upload failed:', cloudinaryError.message);
-        // Keep existing image if Cloudinary fails
-        console.log('Keeping existing image due to Cloudinary error');
+        // Use a better placeholder image if Cloudinary fails
+        updateData.imageUrl = `https://via.placeholder.com/400x300/3B82F6/FFFFFF?text=${encodeURIComponent(title)}`;
+        console.log('Using placeholder image due to Cloudinary error');
       }
     }
     
