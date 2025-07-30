@@ -87,30 +87,41 @@ const Contact = () => {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Basic validation
     if (!formData.name || !formData.email || !formData.message) {
       toast.error("Please fill out all required fields");
       return;
     }
-    
+
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       toast.error("Please enter a valid email address");
       return;
     }
-    
+
     setIsSubmitting(true);
-    
-    // Simulate form submission (in a real app, you'd send this to a server)
+
     try {
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+      const res = await fetch(`${API_URL}/api/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+          type: "contact",
+        }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${res.status}: Failed to send message`);
+      }
       
+      const result = await res.json();
       toast.success("Message sent successfully! I'll get back to you soon.");
-      
-      // Reset form
       setFormData({
         name: "",
         email: "",
@@ -118,7 +129,8 @@ const Contact = () => {
         message: "",
       });
     } catch (error) {
-      toast.error("Failed to send message. Please try again later.");
+      const errorMessage = error instanceof Error ? error.message : "Failed to send message. Please try again later.";
+      toast.error(errorMessage);
       console.error("Form submission error:", error);
     } finally {
       setIsSubmitting(false);

@@ -2,6 +2,8 @@
 import { useState, useEffect, useRef } from "react";
 import ProjectCard from "@/components/ProjectCard";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 const Projects = () => {
   // For intersection observer to trigger animations
   const revealRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -9,6 +11,29 @@ const Projects = () => {
   // Filters for project categories
   const [activeFilter, setActiveFilter] = useState("all");
   
+  // Project data from backend
+  const [projects, setProjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`${API_URL}/api/projects`);
+        if (!res.ok) throw new Error("Failed to fetch projects");
+        const data = await res.json();
+        setProjects(data);
+      } catch (err: any) {
+        setError(err.message || "Unknown error");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProjects();
+  }, []);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -29,7 +54,7 @@ const Projects = () => {
     });
     
     return () => observer.disconnect();
-  }, []);
+  }, [projects]);
   
   // Add elements to the reveal refs
   const addToRefs = (el: HTMLDivElement | null) => {
@@ -37,55 +62,6 @@ const Projects = () => {
       revealRefs.current.push(el);
     }
   };
-  
-  // Project data
-  const projects = [
-    {
-      title: "E-Commerce Website",
-      description: "A full-featured e-commerce platform with payment integration using the MERN stack.",
-      technologies: ["React", "Node.js", "Express", "MongoDB", "Stripe"],
-      githubUrl: "#",
-      liveUrl: "#",
-      category: "fullstack",
-    },
-    {
-      title: "Chess Application",
-      description: "Real-time chess game with multiplayer support and interactive gameplay.",
-      technologies: ["TypeScript", "WebSocket", "Node.js", "HTML", "CSS"],
-      githubUrl: "#",
-      category: "frontend",
-    },
-    {
-      title: "Second Brain App",
-      description: "Knowledge management system to store and categorize Twitter posts and YouTube videos.",
-      technologies: ["MERN Stack", "OAuth", "REST API"],
-      githubUrl: "https://github.com/adnan7398/Draw-App",
-      category: "fullstack",
-    },
-    {
-      title: "Drawing App",
-      description: "A drawing application inspired by Excalidraw with collaborative features.",
-      technologies: ["React", "Canvas API", "WebSockets"],
-      githubUrl: "https://github.com/adnan7398/Draw-App",
-      liveUrl: "#",
-      category: "frontend",
-    },
-    {
-      title: "Blog API",
-      description: "RESTful API for blog management with authentication and authorization.",
-      technologies: ["Node.js", "Express", "MongoDB", "JWT"],
-      githubUrl: "#",
-      category: "backend",
-    },
-    {
-      title: "Portfolio Website",
-      description: "Personal portfolio website built with modern web technologies.",
-      technologies: ["React", "TailwindCSS", "Framer Motion"],
-      githubUrl: "#",
-      liveUrl: "#",
-      category: "frontend",
-    },
-  ];
   
   // Filter categories
   const filters = [
@@ -98,7 +74,7 @@ const Projects = () => {
   // Filtered projects based on active filter
   const filteredProjects = activeFilter === "all" 
     ? projects 
-    : projects.filter(project => project.category === activeFilter);
+    : projects.filter(project => project.techStack?.includes(activeFilter) || project.category === activeFilter);
 
   return (
     <div className="pt-20 pb-20 overflow-x-hidden">
@@ -141,22 +117,35 @@ const Projects = () => {
             ))}
           </div>
           
+          {/* Loading/Error States */}
+          {loading && (
+            <div className="text-center py-12">
+              <h3 className="text-xl font-medium text-gray-700">Loading projects...</h3>
+            </div>
+          )}
+          {error && (
+            <div className="text-center py-12">
+              <h3 className="text-xl font-medium text-red-600">{error}</h3>
+            </div>
+          )}
           {/* Projects Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProjects.map((project, index) => (
-              <div
-                key={index}
-                className="reveal-animation"
-                style={{ transitionDelay: `${0.1 * index}s` }}
-                ref={addToRefs}
-              >
-                <ProjectCard {...project} />
-              </div>
-            ))}
-          </div>
+          {!loading && !error && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredProjects.map((project, index) => (
+                <div
+                  key={project._id || index}
+                  className="reveal-animation"
+                  style={{ transitionDelay: `${0.1 * index}s` }}
+                  ref={addToRefs}
+                >
+                  <ProjectCard {...project} />
+                </div>
+              ))}
+            </div>
+          )}
           
           {/* Empty State */}
-          {filteredProjects.length === 0 && (
+          {!loading && !error && filteredProjects.length === 0 && (
             <div className="text-center py-12">
               <h3 className="text-xl font-medium text-gray-700">No projects found in this category</h3>
               <p className="text-gray-500 mt-2">Try selecting a different category from the filter options above.</p>

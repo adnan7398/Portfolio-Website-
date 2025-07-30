@@ -257,8 +257,17 @@ const Index = () => {
           </div>
         </div>
       </section>
+      {/* Admin Dashboard Link (for admin use only, remove in production) */}
+      <AdminDashboardLink />
     </div>
   );
 };
+
+// Admin Dashboard Link (for admin use only, remove in production)
+export const AdminDashboardLink = () => (
+  <div style={{ textAlign: 'center', marginTop: 40 }}>
+    <a href="/admin" style={{ color: '#2563eb', textDecoration: 'underline' }}>Admin Dashboard</a>
+  </div>
+);
 
 export default Index;
