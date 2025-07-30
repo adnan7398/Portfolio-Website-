@@ -61,6 +61,14 @@ router.post('/upload', auth, upload.single('profileImage'), async (req, res) => 
 // GET /api/profile/image - Get current profile image (public)
 router.get('/image', async (req, res) => {
   try {
+    console.log('Fetching profile image...');
+    
+    // Check if uploads directory exists
+    if (!fs.existsSync(uploadsDir)) {
+      console.log('Uploads directory does not exist, using default');
+      return res.json({ profileImageUrl: '/uploads/profile.svg' });
+    }
+    
     // Check if there's a profile image in the uploads directory
     const profileFiles = fs.readdirSync(uploadsDir).filter(file => file.startsWith('profile-'));
     
@@ -77,7 +85,11 @@ router.get('/image', async (req, res) => {
     }
   } catch (error) {
     console.error('Error fetching profile image:', error);
-    res.status(500).json({ error: 'Failed to fetch profile image' });
+    res.status(500).json({ 
+      error: 'Failed to fetch profile image',
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 

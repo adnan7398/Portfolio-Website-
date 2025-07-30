@@ -23,10 +23,8 @@ app.use(cors({
 
 app.use(express.json());
 
-// Serve static files from uploads directory (only in development)
-if (process.env.NODE_ENV !== 'production') {
-  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-}
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ❌ REMOVE manual CORS headers — handled by `cors` package
 // app.use((req, res, next) => {
@@ -43,7 +41,10 @@ if (process.env.NODE_ENV !== 'production') {
 // ✅ MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB connected'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+  .catch(err => {
+    console.error('❌ MongoDB connection error:', err);
+    console.error('MONGODB_URI:', process.env.MONGODB_URI ? 'Set' : 'NOT SET');
+  });
 
 // ✅ Routes
 const authRoutes = require('./routes/auth');

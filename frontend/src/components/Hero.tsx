@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 const Hero = () => {
-  const [profileImage, setProfileImage] = useState('/public/lovable-uploads/4efcce86-ee77-4aaf-8efc-e3579b1d0d2b.png');
+  const [profileImage, setProfileImage] = useState('/uploads/profile.svg');
   const [imageError, setImageError] = useState(false);
   const backgroundRef = useRef<HTMLDivElement>(null);
   
@@ -169,7 +169,7 @@ const Hero = () => {
                     setImageError(true);
                     // Fallback to default image
                     const target = e.target as HTMLImageElement;
-                    target.src = '/public/lovable-uploads/4efcce86-ee77-4aaf-8efc-e3579b1d0d2b.png';
+                    target.src = '/uploads/profile.svg';
                   }}
                   onLoad={() => {
                     setImageError(false);

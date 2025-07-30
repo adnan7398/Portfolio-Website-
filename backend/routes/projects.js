@@ -90,11 +90,17 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
 // GET /api/projects - Get all projects (public)
 router.get('/', async (req, res) => {
   try {
+    console.log('Fetching projects...');
     const projects = await Project.find().sort({ createdAt: -1 });
+    console.log(`Found ${projects.length} projects`);
     res.json(projects);
   } catch (error) {
     console.error('Error fetching projects:', error);
-    res.status(500).json({ error: 'Failed to fetch projects' });
+    res.status(500).json({ 
+      error: 'Failed to fetch projects',
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
