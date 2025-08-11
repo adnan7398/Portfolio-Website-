@@ -22,37 +22,37 @@ const Index = () => {
     {
       title: "E-Commerce Website",
       description: "A full-featured e-commerce platform with payment integration using the MERN stack.",
-      technologies: ["React", "Node.js", "Express", "MongoDB", "Stripe"],
+      techStack: ["React", "Node.js", "Express", "MongoDB", "Stripe", "Redux", "JWT"],
       githubUrl: "#",
     },
     {
       title: "Chess Application",
       description: "Real-time chess game with multiplayer support and interactive gameplay.",
-      technologies: ["TypeScript", "WebSocket", "Node.js", "HTML", "CSS"],
+      techStack: ["TypeScript", "WebSocket", "Node.js", "HTML", "CSS", "Canvas API"],
       githubUrl: "#",
     },
     {
       title: "Second Brain App",
       description: "Knowledge management system to store and categorize Twitter posts and YouTube videos.",
-      technologies: ["MERN Stack", "OAuth", "REST API"],
+      techStack: ["MERN Stack", "OAuth", "REST API", "MongoDB", "Express"],
       githubUrl: "https://github.com/adnan7398/Draw-App",
     },
     {
       title: "Portfolio Website",
       description: "A modern, responsive portfolio website built with React and Tailwind CSS.",
-      technologies: ["React", "TypeScript", "Tailwind CSS", "Vite"],
+      techStack: ["React", "TypeScript", "Tailwind CSS", "Vite", "Framer Motion"],
       githubUrl: "#",
     },
     {
       title: "Task Management App",
       description: "A collaborative task management application with real-time updates and user authentication.",
-      technologies: ["React", "Node.js", "Socket.IO", "MongoDB", "JWT"],
+      techStack: ["React", "Node.js", "Socket.IO", "MongoDB", "JWT", "Redis"],
       githubUrl: "#",
     },
     {
       title: "Weather Dashboard",
       description: "A weather application that displays current weather and forecasts using external APIs.",
-      technologies: ["React", "TypeScript", "OpenWeather API", "Chart.js"],
+      techStack: ["React", "TypeScript", "OpenWeather API", "Chart.js", "Axios"],
       githubUrl: "#",
     },
   ];
@@ -68,6 +68,7 @@ const Index = () => {
         if (!res.ok) throw new Error("Failed to fetch projects");
         const data = await res.json();
         console.log("Projects fetched successfully:", data);
+        console.log("First project techStack:", data[0]?.techStack);
         setProjects(data);
       } catch (err: any) {
         console.error("Error fetching projects:", err);
@@ -282,11 +283,10 @@ const Index = () => {
             
             <div className="md:w-1/2 flex justify-center">
               <div className="relative">
-                <div className="w-72 h-72 md:w-80 md:h-80 bg-brand-blue rounded-2xl absolute -bottom-4 -right-4 opacity-20"></div>
                 <div className="p-1">
                   <div className="rounded-xl overflow-hidden shadow-xl bg-white w-72 h-72 md:w-80 md:h-80">
                     <img 
-                      src={`${API_URL}/uploads/profile.png`}
+                      src={`${API_URL}/uploads/profile-1753903649159-693753069.JPG`}
                       alt="Mohd Adnan" 
                       className="w-full h-full object-cover"
                       onError={(e) => {

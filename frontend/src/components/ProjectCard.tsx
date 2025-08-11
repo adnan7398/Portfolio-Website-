@@ -29,6 +29,9 @@ const ProjectCard = ({
   // Use technologies or techStack, whichever is available
   const techArray = technologies || techStack || [];
   
+  // Debug logging to see what's being received
+  console.log(`ProjectCard ${title}:`, { technologies, techStack, techArray });
+  
   // Handle image URL - if it's a relative path, prepend the API URL
   const getImageUrl = (url?: string) => {
     if (!url) return '';
@@ -106,7 +109,7 @@ const ProjectCard = ({
               </span>
             ))}
             {techArray.length > 4 && (
-              <span className="px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">
+              <span className="px-3 py-1 text-xs font-medium bg-orange-100 text-orange-600 rounded-full border border-orange-200">
                 +{techArray.length - 4} more
               </span>
             )}
