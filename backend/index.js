@@ -23,10 +23,9 @@ app.use(cors({
 
 app.use(express.json());
 
-// Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ❌ REMOVE manual CORS headers — handled by `cors` package
+//  REMOVE manual CORS headers — handled by `cors` package
 // app.use((req, res, next) => {
 //   res.header('Access-Control-Allow-Origin', '*');
 //   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
@@ -38,7 +37,6 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 //   }
 // });
 
-// ✅ MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB connected'))
   .catch(err => {
@@ -46,7 +44,6 @@ mongoose.connect(process.env.MONGODB_URI)
     console.error('MONGODB_URI:', process.env.MONGODB_URI ? 'Set' : 'NOT SET');
   });
 
-// ✅ Routes
 const authRoutes = require('./routes/auth');
 const projectRoutes = require('./routes/projects');
 const messageRoutes = require('./routes/messages');
@@ -57,7 +54,6 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/profile', profileRoutes);
 
-// ✅ Health Check
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
@@ -67,7 +63,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ✅ Test Endpoint
 app.get('/test', (req, res) => {
   console.log(`${new Date().toISOString()} - GET /test`);
   res.json({ 
@@ -76,7 +71,6 @@ app.get('/test', (req, res) => {
   });
 });
 
-// ✅ Root Endpoint
 app.get('/', (req, res) => {
   res.json({ 
     message: 'Portfolio Backend API',
@@ -92,7 +86,6 @@ app.get('/', (req, res) => {
   });
 });
 
-// ✅ Start Server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);

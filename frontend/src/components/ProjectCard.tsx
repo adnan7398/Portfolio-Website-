@@ -46,6 +46,11 @@ const ProjectCard = ({
     const encodedTitle = encodeURIComponent(title);
     return `https://via.placeholder.com/400x300/3B82F6/FFFFFF?text=${encodedTitle}`;
   };
+
+  // Truncate description if it's too long
+  const truncatedDescription = description.length > 120 
+    ? description.substring(0, 120) + '...' 
+    : description;
   
   return (
     <div 
@@ -87,12 +92,12 @@ const ProjectCard = ({
       {/* Project Details */}
       <div className="p-6 relative z-10">
         <h3 className="text-xl font-semibold mb-2 text-gray-900">{title}</h3>
-        <p className="text-gray-600 mb-4 text-sm">{description}</p>
+        <p className="text-gray-600 mb-4 text-sm">{truncatedDescription}</p>
         
         {/* Technologies */}
         {techArray.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-6">
-            {techArray.map((tech, index) => (
+            {techArray.slice(0, 4).map((tech, index) => (
               <span 
                 key={index} 
                 className="px-3 py-1 text-xs font-medium bg-brand-blue/10 text-brand-blue rounded-full"
@@ -100,6 +105,11 @@ const ProjectCard = ({
                 {tech}
               </span>
             ))}
+            {techArray.length > 4 && (
+              <span className="px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">
+                +{techArray.length - 4} more
+              </span>
+            )}
           </div>
         )}
         

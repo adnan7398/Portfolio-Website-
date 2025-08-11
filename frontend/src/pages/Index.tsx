@@ -2,13 +2,85 @@
 import Hero from "@/components/Hero";
 import ProjectCard from "@/components/ProjectCard";
 import SkillBadge from "@/components/SkillBadge";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Star } from 'lucide-react';
 import { Link } from "react-router-dom";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 const Index = () => {
   // For intersection observer to trigger animations
   const revealRefs = useRef<(HTMLDivElement | null)[]>([]);
+  
+  // Project data state
+  const [projects, setProjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Dummy projects as fallback
+  const dummyProjects = [
+    {
+      title: "E-Commerce Website",
+      description: "A full-featured e-commerce platform with payment integration using the MERN stack.",
+      technologies: ["React", "Node.js", "Express", "MongoDB", "Stripe"],
+      githubUrl: "#",
+    },
+    {
+      title: "Chess Application",
+      description: "Real-time chess game with multiplayer support and interactive gameplay.",
+      technologies: ["TypeScript", "WebSocket", "Node.js", "HTML", "CSS"],
+      githubUrl: "#",
+    },
+    {
+      title: "Second Brain App",
+      description: "Knowledge management system to store and categorize Twitter posts and YouTube videos.",
+      technologies: ["MERN Stack", "OAuth", "REST API"],
+      githubUrl: "https://github.com/adnan7398/Draw-App",
+    },
+    {
+      title: "Portfolio Website",
+      description: "A modern, responsive portfolio website built with React and Tailwind CSS.",
+      technologies: ["React", "TypeScript", "Tailwind CSS", "Vite"],
+      githubUrl: "#",
+    },
+    {
+      title: "Task Management App",
+      description: "A collaborative task management application with real-time updates and user authentication.",
+      technologies: ["React", "Node.js", "Socket.IO", "MongoDB", "JWT"],
+      githubUrl: "#",
+    },
+    {
+      title: "Weather Dashboard",
+      description: "A weather application that displays current weather and forecasts using external APIs.",
+      technologies: ["React", "TypeScript", "OpenWeather API", "Chart.js"],
+      githubUrl: "#",
+    },
+  ];
+
+  // Fetch projects from backend
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        console.log(`Fetching projects from: ${API_URL}/api/projects`);
+        const res = await fetch(`${API_URL}/api/projects`);
+        if (!res.ok) throw new Error("Failed to fetch projects");
+        const data = await res.json();
+        console.log("Projects fetched successfully:", data);
+        setProjects(data);
+      } catch (err: any) {
+        console.error("Error fetching projects:", err);
+        setError(err.message || "Unknown error");
+        // Use dummy projects if API fails
+        console.log("Using dummy projects as fallback");
+        setProjects(dummyProjects);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProjects();
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -30,7 +102,7 @@ const Index = () => {
     });
 
     return () => observer.disconnect();
-  }, []);
+  }, [projects]);
 
   // Add elements to the reveal refs
   const addToRefs = (el: HTMLDivElement | null) => {
@@ -39,27 +111,8 @@ const Index = () => {
     }
   };
 
-  // Featured projects
-  const featuredProjects = [
-    {
-      title: "E-Commerce Website",
-      description: "A full-featured e-commerce platform with payment integration using the MERN stack.",
-      technologies: ["React", "Node.js", "Express", "MongoDB", "Stripe"],
-      githubUrl: "#",
-    },
-    {
-      title: "Chess Application",
-      description: "Real-time chess game with multiplayer support and interactive gameplay.",
-      technologies: ["TypeScript", "WebSocket", "Node.js", "HTML", "CSS"],
-      githubUrl: "#",
-    },
-    {
-      title: "Second Brain App",
-      description: "Knowledge management system to store and categorize Twitter posts and YouTube videos.",
-      technologies: ["MERN Stack", "OAuth", "REST API"],
-      githubUrl: "https://github.com/adnan7398/Draw-App",
-    },
-  ];
+  // Use real projects if available, otherwise use dummy projects
+  const displayProjects = projects.length > 0 ? projects : dummyProjects;
 
   // Skill categories
   const skillCategories = [
@@ -91,19 +144,27 @@ const Index = () => {
           <div className="flex flex-col items-center text-center mb-12">
             <span className="text-brand-blue font-medium">Portfolio</span>
             <h2 className="text-3xl md:text-4xl font-bold mt-2 text-gray-900">
-              Featured Projects
+              {projects.length > 0 ? "My Projects" : "Featured Projects"}
             </h2>
             <div className="w-20 h-1 bg-brand-blue mt-4 rounded" />
             <p className="mt-4 max-w-2xl text-gray-600">
-              Explore some of my recent work. These projects showcase my skills
-              and experience in building modern web applications.
+              {projects.length > 0 
+                ? "Explore my recent work. These projects showcase my skills and experience in building modern web applications."
+                : "Explore some of my recent work. These projects showcase my skills and experience in building modern web applications."
+              }
             </p>
+            {loading && (
+              <p className="mt-2 text-sm text-gray-500">Loading projects...</p>
+            )}
+            {error && projects.length === 0 && (
+              <p className="mt-2 text-sm text-orange-500">Showing sample projects (API connection issue)</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredProjects.map((project, index) => (
+            {displayProjects.map((project, index) => (
               <div
-                key={index}
+                key={project._id || index}
                 className="reveal-animation"
                 style={{ transitionDelay: `${0.2 * index}s` }}
                 ref={addToRefs}
@@ -225,10 +286,24 @@ const Index = () => {
                 <div className="rotating-border p-1">
                   <div className="rounded-xl overflow-hidden shadow-xl bg-white w-72 h-72 md:w-80 md:h-80">
                     <img 
-                      src="public/lovable-uploads/4efcce86-ee77-4aaf-8efc-e3579b1d0d2b.png" 
+                      src={`${API_URL}/uploads/profile.png`}
                       alt="Mohd Adnan" 
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        target.nextElementSibling?.classList.remove('hidden');
+                      }}
                     />
+                    {/* Fallback placeholder */}
+                    <div className="hidden w-full h-full bg-gradient-to-r from-gray-200 to-gray-300 flex items-center justify-center text-gray-400">
+                      <div className="text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <p className="text-sm text-gray-500">Profile Image</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

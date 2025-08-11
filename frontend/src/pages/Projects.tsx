@@ -21,11 +21,14 @@ const Projects = () => {
       setLoading(true);
       setError(null);
       try {
+        console.log(`Fetching projects from: ${API_URL}/api/projects`);
         const res = await fetch(`${API_URL}/api/projects`);
         if (!res.ok) throw new Error("Failed to fetch projects");
         const data = await res.json();
+        console.log("Projects fetched successfully:", data);
         setProjects(data);
       } catch (err: any) {
+        console.error("Error fetching projects:", err);
         setError(err.message || "Unknown error");
       } finally {
         setLoading(false);
@@ -149,6 +152,13 @@ const Projects = () => {
             <div className="text-center py-12">
               <h3 className="text-xl font-medium text-gray-700">No projects found in this category</h3>
               <p className="text-gray-500 mt-2">Try selecting a different category from the filter options above.</p>
+              {projects.length === 0 && (
+                <div className="mt-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                  <p className="text-orange-700 text-sm">
+                    No projects are currently available. Please check back later or contact me for more information about my work.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
