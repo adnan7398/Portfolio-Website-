@@ -283,7 +283,7 @@ const Index = () => {
             <div className="md:w-1/2 flex justify-center">
               <div className="relative">
                 <div className="w-72 h-72 md:w-80 md:h-80 bg-brand-blue rounded-2xl absolute -bottom-4 -right-4 opacity-20"></div>
-                <div className="rotating-border p-1">
+                <div className="p-1">
                   <div className="rounded-xl overflow-hidden shadow-xl bg-white w-72 h-72 md:w-80 md:h-80">
                     <img 
                       src={`${API_URL}/uploads/profile.png`}
@@ -292,14 +292,17 @@ const Index = () => {
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.style.display = 'none';
-                        target.nextElementSibling?.classList.remove('hidden');
+                        const placeholder = target.parentElement?.querySelector('.profile-placeholder');
+                        if (placeholder) {
+                          placeholder.classList.remove('hidden');
+                        }
                       }}
                     />
                     {/* Fallback placeholder */}
-                    <div className="hidden w-full h-full bg-gradient-to-r from-gray-200 to-gray-300 flex items-center justify-center text-gray-400">
+                    <div className="profile-placeholder hidden w-full h-full bg-gradient-to-r from-gray-200 to-gray-300 flex items-center justify-center text-gray-400">
                       <div className="text-center">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7-7z" />
                         </svg>
                         <p className="text-sm text-gray-500">Profile Image</p>
                       </div>
