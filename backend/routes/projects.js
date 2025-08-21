@@ -6,19 +6,15 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
-
-// Configure multer for local file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
-    // Create unique filename with timestamp
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
@@ -27,10 +23,9 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 5 * 1024 * 1024
   },
   fileFilter: function (req, file, cb) {
-    // Accept only image files
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
@@ -39,23 +34,18 @@ const upload = multer({
   }
 });
 
-// POST /api/projects - Create new project (admin only)
 router.post('/', auth, upload.single('image'), async (req, res) => {
   try {
     const { title, description, techStack, githubUrl, liveUrl } = req.body;
-
-    // Validate required fields
     if (!title || !description) {
       return res.status(400).json({ error: 'Title and description are required' });
     }
 
-    // Handle image upload
     let imageUrl = '';
     if (req.file) {
-      // Create URL for the uploaded image
+
       imageUrl = `/uploads/${req.file.filename}`;
     } else {
-      // Use a default placeholder image
       imageUrl = '/uploads/placeholder.svg';
     }
 
@@ -117,13 +107,9 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch project' });
   }
 });
-
-// PUT /api/projects/:id - Update project (admin only)
 router.put('/:id', auth, upload.single('image'), async (req, res) => {
   try {
     const { title, description, techStack, githubUrl, liveUrl } = req.body;
-
-    // Validate required fields
     if (!title || !description) {
       return res.status(400).json({ error: 'Title and description are required' });
     }
@@ -135,7 +121,6 @@ router.put('/:id', auth, upload.single('image'), async (req, res) => {
       liveUrl: liveUrl || ''
     };
 
-    // Handle techStack
     if (techStack) {
       if (typeof techStack === 'string') {
         updateData.techStack = techStack.split(',').map(tech => tech.trim());
@@ -143,8 +128,6 @@ router.put('/:id', auth, upload.single('image'), async (req, res) => {
         updateData.techStack = techStack;
       }
     }
-
-    // Handle image upload
     if (req.file) {
       updateData.imageUrl = `/uploads/${req.file.filename}`;
     }
@@ -166,15 +149,12 @@ router.put('/:id', auth, upload.single('image'), async (req, res) => {
   }
 });
 
-// DELETE /api/projects/:id - Delete project (admin only)
 router.delete('/:id', auth, async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
-
-    // Delete the image file if it exists and is not the placeholder
     if (project.imageUrl && !project.imageUrl.includes('placeholder.svg')) {
       const imagePath = path.join(__dirname, '..', project.imageUrl);
       if (fs.existsSync(imagePath)) {

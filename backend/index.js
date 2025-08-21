@@ -6,8 +6,6 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-
-// ✅ CORS Configuration
 app.use(cors({
   origin: [
     'http://localhost:8081',
@@ -40,7 +38,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB connected'))
   .catch(err => {
-    console.error('❌ MongoDB connection error:', err);
+    console.error(' MongoDB connection error:', err);
     console.error('MONGODB_URI:', process.env.MONGODB_URI ? 'Set' : 'NOT SET');
   });
 
