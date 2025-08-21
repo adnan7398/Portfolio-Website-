@@ -13,20 +13,15 @@ function removeToken() {
 }
 
 const AdminDashboard = () => {
-  // Auth state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(!!getToken());
   const [loginError, setLoginError] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
-
-  // Data state
   const [projects, setProjects] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<'projects' | 'messages' | 'upload' | 'profile'>('projects');
-
-  // Project upload state
   const [uploadData, setUploadData] = useState({
     title: '',
     description: '',
@@ -39,13 +34,11 @@ const AdminDashboard = () => {
   const [uploadError, setUploadError] = useState("");
   const [uploadSuccess, setUploadSuccess] = useState("");
 
-  // Profile upload state
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [profileUploading, setProfileUploading] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [profileSuccess, setProfileSuccess] = useState("");
 
-  // Login handler
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError("");
@@ -66,7 +59,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Registration handler
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError("");
@@ -87,7 +79,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Logout
   const handleLogout = () => {
     removeToken();
     setIsLoggedIn(false);
@@ -95,7 +86,6 @@ const AdminDashboard = () => {
     setMessages([]);
   };
 
-  // Fetch projects/messages
   useEffect(() => {
     if (!isLoggedIn) return;
     setLoading(true);
@@ -113,7 +103,6 @@ const AdminDashboard = () => {
       .finally(() => setLoading(false));
   }, [isLoggedIn]);
 
-  // Delete project
   const handleDeleteProject = async (id: string) => {
     try {
       await fetch(`${API_URL}/api/projects/${id}`, {
@@ -126,7 +115,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Delete message
   const handleDeleteMessage = async (id: string) => {
     try {
       await fetch(`${API_URL}/api/messages/${id}`, {

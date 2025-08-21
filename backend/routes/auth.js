@@ -3,11 +3,31 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
 const auth = require('../middleware/auth');
+const z = require('zod');
+const { error } = require('console');
 const router = express.Router();
 
 router.post('/register', async (req, res) => {
+  const requirebody = z.object({
+    email: z.string().min(3).max(50).email(),
+    password: z.string().min(8).max(20).refine((password) => {
+      const uppercase = /[A-Z]/.test(password);
+      const lowercase = /[a-z]/.test(password);
+      const specialchar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+      return uppercase && lowercase && specialchar;
+  },{
+    message: 'Password must contain at least one uppercase letter, one lowercase letter, and one special character.'
+  })
+  });
   try {
-    const { email, password } = req.body;
+    const parsedBody = requirebody.parse(req.body);
+    if(!parsedBody.success){
+      return res.status(400).json({ message: 'Invalid input',error: parsedBody.error });
+    }
+    const { email, password } = parsedBody;
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
     const existing = await Admin.findOne({ email });
     if (existing) return res.status(400).json({ message: 'Admin already exists' });
     const hashed = await bcrypt.hash(password, 10);
@@ -19,7 +39,6 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login admin
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -34,7 +53,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Get current admin info
 router.get('/me', auth, async (req, res) => {
   try {
     const admin = await Admin.findById(req.admin.id).select('-password');
