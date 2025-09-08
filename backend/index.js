@@ -7,13 +7,36 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3001;
 app.use(cors({
-  origin: [
-    'http://localhost:8081',
-    'http://localhost:8080',
-    'http://localhost:3000',
-    'https://portfolio-website-ruddy-kappa-93.vercel.app',
-    'https://*.vercel.app' // Optional: allow all Vercel subdomains
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:8081',
+      'http://localhost:8080',
+      'http://localhost:3000',
+      'http://localhost:5173', // Vite dev server
+      'https://portfolio-website-ruddy-kappa-93.vercel.app',
+      'https://portfolio-website-git-main-adnans-projects-c715e72e.vercel.app'
+    ];
+    
+    // Check if origin is allowed
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Allow all Vercel deployments
+    if (origin.includes('.vercel.app')) {
+      return callback(null, true);
+    }
+    
+    // Allow all localhost ports for development
+    if (origin.startsWith('http://localhost:')) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
