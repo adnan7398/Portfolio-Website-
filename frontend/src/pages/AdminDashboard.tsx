@@ -115,6 +115,7 @@ const AdminDashboard = () => {
     }
   };
 
+
   const handleDeleteMessage = async (id: string) => {
     try {
       await fetch(`${API_URL}/api/messages/${id}`, {
@@ -248,13 +249,13 @@ const AdminDashboard = () => {
   if (!isLoggedIn) {
     return (
       <div className="max-w-md mx-auto mt-20 p-6 bg-white rounded shadow">
-        <h2 className="text-2xl font-bold mb-4">{isRegistering ? 'Admin Registration' : 'Admin Login'}</h2>
+        <h2 className="text-2xl font-bold mb-4">{isRegistering? 'Admin Registration' : 'Admin Login'}</h2>
         <form onSubmit={isRegistering ? handleRegister : handleLogin} className="space-y-4">
           <input type="email" name="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="w-full border p-2 rounded" required />
           <input type="password" name="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="w-full border p-2 rounded" required />
           {loginError && <div className={`text-sm ${loginError.includes('successful') ? 'text-green-600' : 'text-red-600'}`}>{loginError}</div>}
           <button type="submit" className="w-full bg-brand-blue text-white py-2 rounded">
-            {isRegistering ? 'Register' : 'Login'}
+            {isRegistering ==false? 'Register' : 'Login'}
           </button>
         </form>
         <div className="mt-4 text-center">

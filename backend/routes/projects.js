@@ -6,6 +6,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+
 const uploadsDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -77,19 +78,31 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
   }
 });
 
+
+
 // GET /api/projects - Get all projects (public)
 router.get('/', async (req, res) => {
   try {
     console.log('Fetching projects...');
+    
+
+    
     const projects = await Project.find().sort({ createdAt: -1 });
     console.log(`Found ${projects.length} projects`);
-    res.json(projects);
+    
+    // Ensure we always return an array
+    const projectsArray = Array.isArray(projects) ? projects : [];
+    
+    res.json(projectsArray);
   } catch (error) {
     console.error('Error fetching projects:', error);
+    
+
+    
     res.status(500).json({ 
       error: 'Failed to fetch projects',
-      details: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      message: 'An unexpected error occurred',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });

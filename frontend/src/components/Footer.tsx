@@ -5,36 +5,36 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
   
   return (
-    <footer className="py-12 bg-gray-50">
+    <footer className="py-12 bg-gradient-to-br from-gray-900 via-black to-gray-800">
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-6 md:mb-0">
             <Link to="/" className="flex items-center space-x-2">
-              <span className="text-brand-blue font-bold text-2xl">AD</span>
+              <span className="text-blue-400 font-bold text-2xl">AD</span>
             </Link>
-            <p className="mt-2 text-gray-600 text-sm">
+            <p className="mt-2 text-gray-300 text-sm">
               Building digital products, brands, and experiences.
             </p>
           </div>
           
           <div className="mb-6 md:mb-0">
-            <h3 className="text-gray-900 font-medium mb-3">Quick Links</h3>
+            <h3 className="text-white font-medium mb-3">Quick Links</h3>
             <nav className="flex flex-col space-y-2">
-              <Link to="/" className="text-gray-600 hover:text-brand-blue transition-colors text-sm">Home</Link>
-              <Link to="/about" className="text-gray-600 hover:text-brand-blue transition-colors text-sm">About</Link>
-              <Link to="/projects" className="text-gray-600 hover:text-brand-blue transition-colors text-sm">Projects</Link>
-              <Link to="/contact" className="text-gray-600 hover:text-brand-blue transition-colors text-sm">Contact</Link>
+              <Link to="/" className="text-gray-300 hover:text-blue-400 transition-colors text-sm">Home</Link>
+              <Link to="/about" className="text-gray-300 hover:text-blue-400 transition-colors text-sm">About</Link>
+              <Link to="/projects" className="text-gray-300 hover:text-blue-400 transition-colors text-sm">Projects</Link>
+              <Link to="/contact" className="text-gray-300 hover:text-blue-400 transition-colors text-sm">Contact</Link>
             </nav>
           </div>
           
           <div>
-            <h3 className="text-gray-900 font-medium mb-3">Connect</h3>
+            <h3 className="text-white font-medium mb-3">Connect</h3>
             <div className="flex items-center space-x-4">
               <a 
                 href="https://github.com/adnan7398" 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-600 hover:text-brand-blue transition-colors"
+                className="text-gray-300 hover:text-blue-400 transition-colors"
                 aria-label="GitHub"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -45,7 +45,7 @@ const Footer = () => {
                 href="https://www.linkedin.com/in/" 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-600 hover:text-brand-blue transition-colors"
+                className="text-gray-300 hover:text-blue-400 transition-colors"
                 aria-label="LinkedIn"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -54,7 +54,7 @@ const Footer = () => {
               </a>
               <a 
                 href="mailto:123adnansiddiqui@gmail.com"
-                className="text-gray-600 hover:text-brand-blue transition-colors"
+                className="text-gray-300 hover:text-blue-400 transition-colors"
                 aria-label="Email"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -65,8 +65,8 @@ const Footer = () => {
           </div>
         </div>
         
-        <div className="mt-10 pt-6 border-t border-gray-200 text-center">
-          <p className="text-gray-600 text-sm">
+        <div className="mt-10 pt-6 border-t border-gray-700 text-center">
+          <p className="text-gray-400 text-sm">
             &copy; {currentYear} Mohd Adnan. All rights reserved.
           </p>
         </div>

@@ -120,45 +120,65 @@ const Index = () => {
     {
       name: "Frontend",
       skills: ["React", "Next.js", "TypeScript", "JavaScript", "HTML", "CSS", "TailwindCSS"],
+      icon: "🎨",
+      gradient: "from-pink-500 to-rose-500",
+      bgGradient: "from-pink-900/30 to-rose-900/20",
     },
     {
       name: "Backend",
       skills: ["Node.js", "Express.js", "MongoDB", "PostgreSQL", "Prisma"],
+      icon: "⚙️",
+      gradient: "from-blue-500 to-cyan-500",
+      bgGradient: "from-blue-900/30 to-cyan-900/20",
     },
     {
       name: "Others",
       skills: ["Docker", "Socket.IO", "Redis", "AWS", "C++", "Python"],
+      icon: "🛠️",
+      gradient: "from-purple-500 to-indigo-500",
+      bgGradient: "from-purple-900/30 to-indigo-900/20",
     },
   ];
 
   return (
-    <div className="overflow-x-hidden">
-      {/* Hero Section */}
+    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 via-slate-800 to-slate-900">
       <Hero />
-
-      {/* Featured Projects Section */}
-      <section className="py-20 bg-gray-50">
+      
+      {/* Projects Section */}
+      <section className="py-20 relative">
+        {/* Background glow effects */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-cyan-500/5"></div>
+        <div className="absolute top-20 left-10 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl"></div>
+        
         <div
-          className="container mx-auto px-6 reveal-animation"
+          className="container mx-auto px-6 reveal-animation relative z-10"
           ref={addToRefs}
         >
-          <div className="flex flex-col items-center text-center mb-12">
-            <span className="text-brand-blue font-medium">Portfolio</span>
-            <h2 className="text-3xl md:text-4xl font-bold mt-2 text-gray-900">
+          <div className="flex flex-col items-center text-center mb-16">
+            <span className="inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25 border border-blue-400/30">
+              ✨ Portfolio
+            </span>
+            <h2 className="text-4xl md:text-5xl font-bold mt-6 text-white leading-tight bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent drop-shadow-lg">
               {projects.length > 0 ? "My Projects" : "Featured Projects"}
             </h2>
-            <div className="w-20 h-1 bg-brand-blue mt-4 rounded" />
-            <p className="mt-4 max-w-2xl text-gray-600">
+            <div className="w-24 h-1.5 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600 mt-6 rounded-full shadow-lg shadow-blue-500/50" />
+            <p className="mt-8 max-w-3xl text-lg text-gray-200 leading-relaxed font-normal">
               {projects.length > 0 
                 ? "Explore my recent work. These projects showcase my skills and experience in building modern web applications."
                 : "Explore some of my recent work. These projects showcase my skills and experience in building modern web applications."
               }
             </p>
             {loading && (
-              <p className="mt-2 text-sm text-gray-500">Loading projects...</p>
+              <div className="mt-6 flex items-center space-x-3 text-blue-300 font-medium">
+                <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-base">Loading projects...</span>
+              </div>
             )}
             {error && projects.length === 0 && (
-              <p className="mt-2 text-sm text-orange-500">Showing sample projects (API connection issue)</p>
+              <div className="mt-6 px-5 py-2.5 bg-gradient-to-r from-orange-900/40 to-red-900/40 border border-orange-500/50 rounded-xl backdrop-blur-sm shadow-lg">
+                <p className="text-orange-200 text-base font-medium">Showing sample projects (API connection issue)</p>
+              </div>
             )}
           </div>
 
@@ -166,8 +186,8 @@ const Index = () => {
             {displayProjects.map((project, index) => (
               <div
                 key={project._id || index}
-                className="reveal-animation"
-                style={{ transitionDelay: `${0.2 * index}s` }}
+                className="reveal-animation transform hover:scale-105 transition-all duration-300"
+                style={{ transitionDelay: `${0.1 * index}s` }}
                 ref={addToRefs}
               >
                 <ProjectCard {...project} />
@@ -175,14 +195,16 @@ const Index = () => {
             ))}
           </div>
 
-          <div className="flex justify-center mt-10">
+          <div className="flex justify-center mt-16">
             <Link
               to="/projects"
-              className="flex items-center space-x-2 text-brand-blue hover:underline transition-all"
+              className="group inline-flex items-center space-x-3 text-blue-300 hover:text-cyan-200 transition-all duration-300 font-semibold text-lg"
             >
-              <span>View all projects</span>
+              <span className="border-b-2 border-transparent group-hover:border-cyan-300 transition-all duration-300 pb-1">
+                View all projects
+              </span>
               <svg
-                className="w-4 h-4"
+                className="w-5 h-5 transform group-hover:translate-x-2 transition-transform duration-300"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -201,44 +223,56 @@ const Index = () => {
       </section>
 
       {/* Skills Section */}
-      <section className="py-20">
+      <section className="py-20 relative">
+        {/* Background glow effects */}
+        <div className="absolute top-20 left-20 w-64 h-64 bg-green-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl"></div>
+        
         <div
-          className="container mx-auto px-6 reveal-animation"
+          className="container mx-auto px-6 reveal-animation relative z-10"
           ref={addToRefs}
         >
-          <div className="flex flex-col items-center text-center mb-12">
-            <span className="text-brand-blue font-medium">Expertise</span>
-            <h2 className="text-3xl md:text-4xl font-bold mt-2 text-gray-900">
+          <div className="flex flex-col items-center text-center mb-16">
+            <span className="inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25 border border-green-400/30">
+              🚀 Expertise
+            </span>
+            <h2 className="text-4xl md:text-5xl font-bold mt-6 text-white leading-tight bg-gradient-to-r from-green-400 via-emerald-300 to-green-500 bg-clip-text text-transparent drop-shadow-lg">
               Skills & Technologies
             </h2>
-            <div className="w-20 h-1 bg-brand-blue mt-4 rounded" />
-            <p className="mt-4 max-w-2xl text-gray-600">
+            <div className="w-24 h-1.5 bg-gradient-to-r from-green-500 via-emerald-400 to-green-600 mt-6 rounded-full shadow-lg shadow-green-500/50" />
+            <p className="mt-8 max-w-3xl text-lg text-gray-200 leading-relaxed font-normal">
               I work with a variety of technologies to create robust and
               scalable applications. Here are some of the tools and languages I
               specialize in.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {skillCategories.map((category, categoryIndex) => (
               <div
                 key={categoryIndex}
-                className="reveal-animation"
+                className="reveal-animation group"
                 style={{ transitionDelay: `${0.2 * categoryIndex}s` }}
                 ref={addToRefs}
               >
-                <h3 className="text-xl font-semibold mb-4 text-gray-800">
-                  {category.name}
-                </h3>
-                <div className="flex flex-wrap gap-3">
-                  {category.skills.map((skill, skillIndex) => (
-                    <SkillBadge
-                      key={skillIndex}
-                      name={skill}
-                      className="animate-fade-in"
-                      style={{ animationDelay: `${0.1 * skillIndex}s` }}
-                    />
-                  ))}
+                <div className={`text-center p-8 rounded-3xl bg-gradient-to-br ${category.bgGradient} border border-gray-600/40 hover:border-${category.gradient.split('-')[1]}-400/60 hover:shadow-xl transition-all duration-500 group-hover:scale-105 backdrop-blur-sm relative overflow-hidden`}>
+                  {/* Background glow */}
+                  <div className={`absolute inset-0 bg-gradient-to-r ${category.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}></div>
+                  
+                  <div className="text-5xl mb-4 relative z-10">{category.icon}</div>
+                  <h3 className={`text-2xl font-bold mb-6 text-white group-hover:bg-gradient-to-r ${category.gradient} bg-clip-text group-hover:text-transparent transition-all duration-500 relative z-10`}>
+                    {category.name}
+                  </h3>
+                  <div className="flex flex-wrap justify-center gap-2 relative z-10">
+                    {category.skills.map((skill, skillIndex) => (
+                      <SkillBadge
+                        key={skillIndex}
+                        name={skill}
+                        className="animate-fade-in transform hover:scale-110 transition-all duration-300"
+                        style={{ animationDelay: `${0.1 * skillIndex}s` }}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}
@@ -246,102 +280,43 @@ const Index = () => {
         </div>
       </section>
 
-      <section className="py-20 bg-gray-50">
-        <div
-          className="container mx-auto px-6 reveal-animation"
-          ref={addToRefs}
-        >
-          <div className="flex flex-col md:flex-row items-center gap-10">
-            <div className="md:w-1/2">
-              <span className="text-brand-blue font-medium">About Me</span>
-              <h2 className="text-3xl md:text-4xl font-bold mt-2 text-gray-900">
-                Computer Science Student & Full Stack Developer
-              </h2>
-              <div className="w-20 h-1 bg-brand-blue mt-4 rounded" />
-              <p className="mt-6 text-gray-600">
-                I'm a Computer Science student at G B Pant DSEU Okhla 1 Campus, passionate about building modern web applications. With expertise in the MERN stack and a focus on creating accessible, user-friendly interfaces, I strive to deliver high-quality code and exceptional user experiences.
-              </p>
-              <p className="mt-4 text-gray-600">
-                I've solved over 400 DSA problems on LeetCode 9& gfg. <br />
-                <span className="inline-flex items-center space-x-1">
-                <span>3</span>
-                <Star className="w-6 h-6 text-yellow-500" />
-              </span>
-                 at CodeChef,
-                 1200+ rating at Codeforces.
-                  <br />which has significantly improved my problem-solving abilities and algorithmic thinking. My journey in tech is driven by curiosity and a continuous desire to learn and grow.
-              </p>
-              <div className="mt-8">
-                <Link
-                  to="/about"
-                  className="bg-brand-blue text-white font-medium px-6 py-3 rounded-full hover:shadow-lg transition-all hover:scale-105 active:scale-95 inline-block"
-                >
-                  More About Me
-                </Link>
-              </div>
-            </div>
-            
-            <div className="md:w-1/2 flex justify-center">
-              <div className="relative">
-                <div className="p-1">
-                  <div className="rounded-xl overflow-hidden shadow-xl bg-white w-72 h-72 md:w-80 md:h-80">
-                    <img 
-                      src={`${API_URL}/uploads/profile-1753903649159-693753069.JPG`}
-                      alt="Mohd Adnan" 
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        const placeholder = target.parentElement?.querySelector('.profile-placeholder');
-                        if (placeholder) {
-                          placeholder.classList.remove('hidden');
-                        }
-                      }}
-                    />
-                    {/* Fallback placeholder */}
-                    <div className="profile-placeholder hidden w-full h-full bg-gradient-to-r from-gray-200 to-gray-300 flex items-center justify-center text-gray-400">
-                      <div className="text-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7-7z" />
-                        </svg>
-                        <p className="text-sm text-gray-500">Profile Image</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Contact Preview Section */}
-      <section className="py-20">
+      <section className="py-20 relative">
+        {/* Background glow effects */}
+        <div className="absolute top-20 left-20 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-20 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl"></div>
+        
         <div
-          className="container mx-auto px-6 reveal-animation"
+          className="container mx-auto px-6 reveal-animation relative z-10"
           ref={addToRefs}
         >
-          <div className="flex flex-col items-center text-center">
-            <span className="text-brand-blue font-medium">Get In Touch</span>
-            <h2 className="text-3xl md:text-4xl font-bold mt-2 text-gray-900">
+          <div className="max-w-4xl mx-auto text-center">
+            <span className="inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25 border border-blue-400/30">
+              💬 Get In Touch
+            </span>
+            <h2 className="text-4xl md:text-5xl font-bold mt-6 text-white leading-tight bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent drop-shadow-lg">
               Let's Work Together
             </h2>
-            <div className="w-20 h-1 bg-brand-blue mt-4 rounded" />
-            <p className="mt-4 max-w-2xl text-gray-600">
+            <div className="w-24 h-1.5 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600 mt-6 rounded-full mx-auto shadow-lg shadow-blue-500/50" />
+            <p className="mt-8 max-w-3xl mx-auto text-lg text-gray-200 leading-relaxed font-normal">
               Interested in collaborating or have a project in mind? Feel free to reach out.
               I'm always open to discussing new opportunities and challenges.
             </p>
-            <div className="mt-8">
+            <div className="mt-12">
               <Link
                 to="/contact"
-                className="bg-brand-blue text-white font-medium px-8 py-3 rounded-full hover:shadow-lg transition-all hover:scale-105 active:scale-95 inline-block"
+                className="group inline-flex items-center space-x-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold px-10 py-4 rounded-full hover:shadow-xl transition-all duration-500 hover:scale-105 active:scale-95 shadow-lg shadow-blue-500/25 text-lg"
               >
-                Contact Me
+                <span>Contact Me</span>
+                <svg className="w-5 h-5 transform group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
               </Link>
             </div>
           </div>
         </div>
       </section>
+      
       {/* Admin Dashboard Link (for admin use only, remove in production) */}
       <AdminDashboardLink />
     </div>
@@ -351,7 +326,7 @@ const Index = () => {
 // Admin Dashboard Link (for admin use only, remove in production)
 export const AdminDashboardLink = () => (
   <div style={{ textAlign: 'center', marginTop: 40 }}>
-    <a href="/admin" style={{ color: '#2563eb', textDecoration: 'underline' }}>Admin Dashboard</a>
+    <a href="/admin" style={{ color: '#60a5fa', textDecoration: 'underline' }}>Admin Dashboard</a>
   </div>
 );
 

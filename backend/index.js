@@ -85,8 +85,8 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Test endpoint: http://localhost:${PORT}/test`);
-  console.log(`🔗 Health endpoint: http://localhost:${PORT}/api/health`);
+  console.log(` Server running on port ${PORT}`);
+  console.log(` Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(` Test endpoint: http://localhost:${PORT}/test`);
+  console.log(` Health endpoint: http://localhost:${PORT}/api/health`);
 });
