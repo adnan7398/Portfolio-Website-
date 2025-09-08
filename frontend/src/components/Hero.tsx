@@ -1,12 +1,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { cn } from "@/lib/utils";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import { cn, buildApiUrl } from "@/lib/utils";
 
 const Hero = () => {
-  const [profileImage, setProfileImage] = useState('/uploads/profile.svg');
+  const [profileImage, setProfileImage] = useState('/placeholder.svg');
   const [imageError, setImageError] = useState(false);
   const backgroundRef = useRef<HTMLDivElement>(null);
   
@@ -14,11 +12,11 @@ const Hero = () => {
   useEffect(() => {
     const fetchProfileImage = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/profile/image`);
+        const response = await fetch(buildApiUrl('/api/profile/image'));
         if (response.ok) {
           const data = await response.json();
           if (data.profileImageUrl) {
-            const fullImageUrl = `${API_URL}${data.profileImageUrl}`;
+            const fullImageUrl = buildApiUrl(data.profileImageUrl);
             setProfileImage(fullImageUrl);
           }
         }
@@ -190,7 +188,7 @@ const Hero = () => {
                       setImageError(true);
                       // Fallback to default image
                       const target = e.target as HTMLImageElement;
-                      target.src = '/uploads/profile.svg';
+                      target.src = '/placeholder.svg';
                     }}
                     onLoad={() => {
                       setImageError(false);

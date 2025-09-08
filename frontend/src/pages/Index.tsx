@@ -5,8 +5,7 @@ import SkillBadge from "@/components/SkillBadge";
 import { useEffect, useRef, useState } from "react";
 import { Star } from 'lucide-react';
 import { Link } from "react-router-dom";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import { buildApiUrl } from "@/lib/utils";
 
 const Index = () => {
   // For intersection observer to trigger animations
@@ -63,8 +62,8 @@ const Index = () => {
       setLoading(true);
       setError(null);
       try {
-        console.log(`Fetching projects from: ${API_URL}/api/projects`);
-        const res = await fetch(`${API_URL}/api/projects`);
+        console.log(`Fetching projects from: ${buildApiUrl('/api/projects')}`);
+        const res = await fetch(buildApiUrl('/api/projects'));
         if (!res.ok) throw new Error("Failed to fetch projects");
         const data = await res.json();
         console.log("Projects fetched successfully:", data);

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import { buildApiUrl } from "@/lib/utils";
 
 function getToken() {
   return localStorage.getItem("admin_token");
@@ -43,7 +42,7 @@ const AdminDashboard = () => {
     e.preventDefault();
     setLoginError("");
     try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
+      const res = await fetch(buildApiUrl('/api/auth/login'), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -63,7 +62,7 @@ const AdminDashboard = () => {
     e.preventDefault();
     setLoginError("");
     try {
-      const res = await fetch(`${API_URL}/api/auth/register`, {
+      const res = await fetch(buildApiUrl('/api/auth/register'), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -90,8 +89,8 @@ const AdminDashboard = () => {
     if (!isLoggedIn) return;
     setLoading(true);
     Promise.all([
-      fetch(`${API_URL}/api/projects`).then(r => r.json()),
-      fetch(`${API_URL}/api/messages`, {
+      fetch(buildApiUrl('/api/projects')).then(r => r.json()),
+      fetch(buildApiUrl('/api/messages'), {
         headers: { Authorization: `Bearer ${getToken()}` },
       }).then(r => r.json()),
     ])
@@ -105,7 +104,7 @@ const AdminDashboard = () => {
 
   const handleDeleteProject = async (id: string) => {
     try {
-      await fetch(`${API_URL}/api/projects/${id}`, {
+      await fetch(buildApiUrl(`/api/projects/${id}`), {
         method: "DELETE",
         headers: { Authorization: `Bearer ${getToken()}` },
       });
@@ -118,7 +117,7 @@ const AdminDashboard = () => {
 
   const handleDeleteMessage = async (id: string) => {
     try {
-      await fetch(`${API_URL}/api/messages/${id}`, {
+      await fetch(buildApiUrl(`/api/messages/${id}`), {
         method: "DELETE",
         headers: { Authorization: `Bearer ${getToken()}` },
       });
@@ -131,7 +130,7 @@ const AdminDashboard = () => {
   // Mark message as read/unread
   const handleMarkRead = async (id: string, read: boolean) => {
     try {
-      await fetch(`${API_URL}/api/messages/${id}/read`, {
+      await fetch(buildApiUrl(`/api/messages/${id}/read`), {
         method: "PATCH",
         headers: { 
           "Content-Type": "application/json",
@@ -176,7 +175,7 @@ const AdminDashboard = () => {
         formData.append("image", uploadData.image);
       }
 
-      const res = await fetch(`${API_URL}/api/projects`, {
+      const res = await fetch(buildApiUrl('/api/projects'), {
         method: "POST",
         headers: { Authorization: `Bearer ${getToken()}` },
         body: formData,
@@ -196,7 +195,7 @@ const AdminDashboard = () => {
       });
       
       // Refresh projects list
-      const projectsRes = await fetch(`${API_URL}/api/projects`);
+      const projectsRes = await fetch(buildApiUrl('/api/projects'));
       const projectsData = await projectsRes.json();
       setProjects(projectsData);
     } catch (err: any) {
@@ -222,7 +221,7 @@ const AdminDashboard = () => {
       const formData = new FormData();
       formData.append("profileImage", profileImage);
 
-      const res = await fetch(`${API_URL}/api/profile/upload`, {
+      const res = await fetch(buildApiUrl('/api/profile/upload'), {
         method: "POST",
         headers: { Authorization: `Bearer ${getToken()}` },
         body: formData,

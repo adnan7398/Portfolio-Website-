@@ -1,9 +1,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import ProjectCard from "@/components/ProjectCard";
-import { cn } from "@/lib/utils";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import { cn, buildApiUrl } from "@/lib/utils";
 
 
 
@@ -25,13 +23,13 @@ const Projects = () => {
       setError(null);
       
       try {
-        console.log(`Fetching projects from: ${API_URL}/api/projects`);
+        console.log(`Fetching projects from: ${buildApiUrl('/api/projects')}`);
         
         // Add timeout to the fetch request
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
         
-        const res = await fetch(`${API_URL}/api/projects`, {
+        const res = await fetch(buildApiUrl('/api/projects'), {
           signal: controller.signal,
           headers: {
             'Accept': 'application/json',

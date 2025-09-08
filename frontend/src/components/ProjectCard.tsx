@@ -1,8 +1,6 @@
 
 import { useState } from 'react';
-import { cn } from "@/lib/utils";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import { cn, buildApiUrl } from "@/lib/utils";
 
 interface ProjectCardProps {
   title: string;
@@ -42,7 +40,7 @@ const ProjectCard = ({
     if (!url) return '';
     if (url.startsWith('http')) return url; // Already a full URL
     if (url.startsWith('/')) {
-      return `${API_URL}${url}`; // Relative path from backend
+      return buildApiUrl(url); // Relative path from backend
     }
     return url; // Fallback
   };
