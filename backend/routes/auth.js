@@ -4,7 +4,6 @@ const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
 const auth = require('../middleware/auth');
 const z = require('zod');
-const { error } = require('console');
 const router = express.Router();
 
 router.post('/register', async (req, res) => {
@@ -15,15 +14,13 @@ router.post('/register', async (req, res) => {
       const lowercase = /[a-z]/.test(password);
       const specialchar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
       return uppercase && lowercase && specialchar;
-  },{
-    message: 'Password must contain at least one uppercase letter, one lowercase letter, and one special character.'
-  })
+    }, {
+      message: 'Password must contain at least one uppercase letter, one lowercase letter, and one special character.'
+    })
   });
+  
   try {
     const parsedBody = requirebody.parse(req.body);
-    if(!parsedBody.success){
-      return res.status(400).json({ message: 'Invalid input',error: parsedBody.error });
-    }
     const { email, password } = parsedBody;
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
