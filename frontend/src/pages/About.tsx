@@ -1,41 +1,46 @@
-
-import { useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { motion } from 'framer-motion';
 import SkillBadge from "@/components/SkillBadge";
 import { Link } from "react-router-dom";
+import { Award, BookOpen, Code, Trophy } from 'lucide-react';
+import { buildApiUrl } from "@/lib/utils";
 
 const About = () => {
-  // For intersection observer to trigger animations
-  const revealRefs = useRef<(HTMLDivElement | null)[]>([]);
-  
+  const [profileImage, setProfileImage] = useState('/placeholder.svg');
+
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('active');
-            observer.unobserve(entry.target);
+    const fetchProfileImage = async () => {
+      try {
+        const response = await fetch(buildApiUrl('/api/profile/image'));
+        if (response.ok) {
+          const data = await response.json();
+          if (data.profileImageUrl) {
+            setProfileImage(buildApiUrl(data.profileImageUrl));
           }
-        });
-      },
-      {
-        threshold: 0.1,
+        }
+      } catch (error) {
+        console.error('Error fetching profile image:', error);
       }
-    );
-    
-    revealRefs.current.forEach((ref) => {
-      if (ref) observer.observe(ref);
-    });
-    
-    return () => observer.disconnect();
+    };
+    fetchProfileImage();
   }, []);
-  
-  // Add elements to the reveal refs
-  const addToRefs = (el: HTMLDivElement | null) => {
-    if (el && !revealRefs.current.includes(el)) {
-      revealRefs.current.push(el);
+
+  // Animation variants
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
     }
   };
-  
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+
   // Education data
   const education = [
     {
@@ -50,385 +55,200 @@ const About = () => {
       duration: "2021",
     },
   ];
-  
+
   // Skills data
   const skills = {
-    languages: ["JavaScript", "TypeScript", "C", "C++", "Python (basic)"],
-    frontend: ["React", "Next.js", "HTML", "CSS", "TailwindCSS"],
-    backend: ["Node.js", "Express.js"],
+    languages: ["JavaScript", "TypeScript", "C", "C++", "Python"],
+    frontend: ["React", "Next.js", "HTML5", "CSS3", "TailwindCSS", "Framer Motion"],
+    backend: ["Node.js", "Express.js", "REST APIs"],
     databases: ["MongoDB", "PostgreSQL", "Prisma"],
-    tools: ["Docker", "Socket.IO", "Redis", "Postman", "VS Code", "GitHub", "Xcode"],
-    cloud: ["AWS"],
+    tools: ["Docker", "Git/GitHub", "VS Code", "Postman", "Xcode"],
+    cloud: ["AWS (Basic)"],
   };
-  
-
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 via-slate-800 to-slate-900 pt-20 pb-20 overflow-x-hidden">
-      {/* About Hero Section */}
-      <section className="py-20 relative">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row items-center gap-16">
-            <div className="md:w-1/2 order-2 md:order-1">
-              <span className="inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25 border border-purple-400/30 animate-fade-in">
-                👨‍💻 About Me
-              </span>
-              <h1 className="text-4xl md:text-5xl font-bold mt-6 text-white leading-tight bg-gradient-to-r from-purple-400 via-pink-300 to-purple-500 bg-clip-text text-transparent drop-shadow-lg animate-fade-in" style={{ animationDelay: "0.2s" }}>
-                Computer Science Student & Developer
-              </h1>
-              <div className="w-24 h-1.5 bg-gradient-to-r from-purple-500 via-pink-400 to-purple-600 mt-6 rounded-full shadow-lg shadow-purple-500/50 animate-fade-in" style={{ animationDelay: "0.3s" }} />
-              <p className="mt-8 text-lg text-gray-200 leading-relaxed font-normal animate-fade-in" style={{ animationDelay: "0.4s" }}>
-                Hello! I'm Mohd Adnan, a passionate full-stack developer and Computer Science student. I specialize in building modern web applications using the MERN stack and other cutting-edge technologies.
-              </p>
-              <p className="mt-6 text-lg text-gray-200 leading-relaxed font-normal animate-fade-in" style={{ animationDelay: "0.5s" }}>
-                My journey in programming started with curiosity and has evolved into a deep passion for creating efficient, elegant solutions to complex problems. I'm constantly learning and experimenting with new technologies to expand my skill set.
-              </p>
-            </div>
-            
-            <div className="md:w-1/2 flex justify-center order-1 md:order-2">
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl blur-3xl opacity-40 group-hover:opacity-60 transition-opacity duration-500"></div>
-                <div className="relative p-3">
-                  <div className="rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-gray-800 to-gray-700 w-64 h-64 md:w-80 md:h-80 transform group-hover:scale-110 transition-transform duration-500 border border-gray-500/40 group-hover:border-purple-400/60">
-                    <img 
-                      src="public/lovable-uploads/4efcce86-ee77-4aaf-8efc-e3579b1d0d2b.png" 
-                      alt="Mohd Adnan" 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      {/* Education Section */}
-      <section className="py-20 relative">
-        <div 
-          className="container mx-auto px-6 reveal-animation"
-          ref={addToRefs}
-        >
-          <div className="flex flex-col items-center text-center mb-16">
-            <span className="inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25 border border-blue-400/30">
-              🎓 My Background
-            </span>
-            <h2 className="text-4xl md:text-5xl font-bold mt-6 text-white leading-tight bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent drop-shadow-lg">
-              Education
-            </h2>
-            <div className="w-24 h-1.5 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600 mt-6 rounded-full shadow-lg shadow-blue-500/50" />
-          </div>
-          
-          <div className="max-w-3xl mx-auto">
-            <div className="space-y-8">
-              {education.map((item, index) => (
-                <div 
-                  key={index}
-                  className="reveal-animation bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-2xl p-8 shadow-xl border border-gray-600/40 transition-all hover:shadow-2xl hover:border-blue-400/60 backdrop-blur-sm"
-                  style={{ transitionDelay: `${0.2 * index}s` }}
-                  ref={addToRefs}
-                >
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
-                    <div>
-                      <h3 className="text-xl font-semibold text-white">{item.degree}</h3>
-                      <p className="text-gray-300 mt-2">{item.institution}</p>
-                      {item.gpa && <p className="text-blue-400 font-medium mt-2">{item.gpa}</p>}
-                    </div>
-                    <div className="mt-4 sm:mt-0">
-                      <span className="inline-block px-4 py-2 bg-gradient-to-r from-blue-500/30 to-cyan-500/30 text-blue-200 rounded-full text-sm font-semibold border border-blue-400/40">
-                        {item.duration}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      {/* Skills Section */}
-      <section className="py-20 relative">
-        <div 
-          className="container mx-auto px-6 reveal-animation"
-          ref={addToRefs}
-        >
-          <div className="flex flex-col items-center text-center mb-16">
-            <span className="inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25 border border-green-400/30">
-              🚀 What I Know
-            </span>
-            <h2 className="text-4xl md:text-5xl font-bold mt-6 text-white leading-tight bg-gradient-to-r from-green-400 via-emerald-300 to-green-500 bg-clip-text text-transparent drop-shadow-lg">
-              Skills & Technologies
-            </h2>
-            <div className="w-24 h-1.5 bg-gradient-to-r from-green-500 via-emerald-400 to-green-600 mt-6 rounded-full shadow-lg shadow-green-500/50" />
-            <p className="mt-8 max-w-3xl text-lg text-gray-200 leading-relaxed font-normal">
-              Throughout my journey, I've acquired a diverse set of skills and technologies.
-              Here's an overview of what I bring to the table.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div 
-              className="reveal-animation bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-2xl p-8 shadow-xl border border-gray-600/40 backdrop-blur-sm"
-              ref={addToRefs}
-            >
-              <h3 className="text-xl font-semibold mb-6 text-white">Languages</h3>
-              <div className="flex flex-wrap gap-2">
-                {skills.languages.map((skill, index) => (
-                  <SkillBadge 
-                    key={index} 
-                    name={skill}
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${0.1 * index}s` }}
-                  />
-                ))}
-              </div>
-            </div>
-            
-            <div 
-              className="reveal-animation bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-2xl p-8 shadow-xl border border-gray-600/40 backdrop-blur-sm"
-              style={{ transitionDelay: "0.2s" }}
-              ref={addToRefs}
-            >
-              <h3 className="text-xl font-semibold mb-6 text-white">Frontend</h3>
-              <div className="flex flex-wrap gap-2">
-                {skills.frontend.map((skill, index) => (
-                  <SkillBadge 
-                    key={index} 
-                    name={skill}
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${0.1 * index}s` }}
-                  />
-                ))}
-              </div>
-            </div>
-            
-            <div 
-              className="reveal-animation bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-2xl p-8 shadow-xl border border-gray-600/40 backdrop-blur-sm"
-              style={{ transitionDelay: "0.4s" }}
-              ref={addToRefs}
-            >
-              <h3 className="text-xl font-semibold mb-6 text-white">Backend</h3>
-              <div className="flex flex-wrap gap-2">
-                {skills.backend.map((skill, index) => (
-                  <SkillBadge 
-                    key={index} 
-                    name={skill}
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${0.1 * index}s` }}
-                  />
-                ))}
-              </div>
-            </div>
-            
-            <div 
-              className="reveal-animation bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-2xl p-8 shadow-xl border border-gray-600/40 backdrop-blur-sm"
-              style={{ transitionDelay: "0.6s" }}
-              ref={addToRefs}
-            >
-              <h3 className="text-xl font-semibold mb-6 text-white">Databases</h3>
-              <div className="flex flex-wrap gap-2">
-                {skills.databases.map((skill, index) => (
-                  <SkillBadge 
-                    key={index} 
-                    name={skill}
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${0.1 * index}s` }}
-                  />
-                ))}
-              </div>
-            </div>
-            
-            <div 
-              className="reveal-animation bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-2xl p-8 shadow-xl border border-gray-600/40 backdrop-blur-sm"
-              style={{ transitionDelay: "0.8s" }}
-              ref={addToRefs}
-            >
-              <h3 className="text-xl font-semibold mb-6 text-white">Tools</h3>
-              <div className="flex flex-wrap gap-2">
-                {skills.tools.map((skill, index) => (
-                  <SkillBadge 
-                    key={index} 
-                    name={skill}
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${0.1 * index}s` }}
-                  />
-                ))}
-              </div>
-            </div>
-            
-            <div 
-              className="reveal-animation bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-2xl p-8 shadow-xl border border-gray-600/40 backdrop-blur-sm"
-              style={{ transitionDelay: "1s" }}
-              ref={addToRefs}
-            >
-              <h3 className="text-xl font-semibold mb-6 text-white">Cloud</h3>
-              <div className="flex flex-wrap gap-2">
-                {skills.cloud.map((skill, index) => (
-                  <SkillBadge 
-                    key={index} 
-                    name={skill}
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${0.1 * index}s` }}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      
+    <div className="min-h-screen pb-20 overflow-x-hidden">
+      {/* Hero Section */}
+      <section className="pt-32 pb-16 bg-background relative overflow-hidden">
+        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px] opacity-50" />
 
-      
-      {/* CTA Section */}
-      <section className="py-20 relative">
-        <div 
-          className="container mx-auto px-6 reveal-animation"
-          ref={addToRefs}
-        >
+        <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="bg-gradient-to-br from-blue-900/40 to-cyan-900/40 rounded-3xl p-8 md:p-12 border border-blue-500/40 backdrop-blur-sm shadow-2xl">
-              <h2 className="text-4xl md:text-5xl font-bold text-white leading-tight bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent drop-shadow-lg">
-                Want to work together?
-              </h2>
-              <p className="mt-6 text-lg text-gray-200 leading-relaxed font-normal max-w-2xl mx-auto">
-                I'm always interested in new opportunities and challenges.
-                Let's create something amazing together!
-              </p>
-              <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-                <Link 
-                  to="/projects" 
-                  className="bg-gradient-to-r from-gray-700 to-gray-600 text-white font-semibold px-8 py-4 rounded-xl border border-gray-500/40 hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 text-center shadow-lg"
-                >
-                  View My Work
-                </Link>
-                <Link 
-                  to="/contact" 
-                  className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold px-8 py-4 rounded-xl hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 text-center shadow-lg shadow-blue-500/25"
-                >
-                  Get In Touch
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      {/* Coding Achievements Section */}
-      <section className="py-20 relative">
-        <div 
-          className="container mx-auto px-6 reveal-animation"
-          ref={addToRefs}
-        >
-          <div className="flex flex-col items-center text-center mb-16">
-            <span className="inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg shadow-yellow-500/25 border border-yellow-400/30">
-              🏆 Coding Achievements
-            </span>
-            <h2 className="text-4xl md:text-5xl font-bold mt-6 text-white leading-tight bg-gradient-to-r from-yellow-400 via-orange-300 to-yellow-500 bg-clip-text text-transparent drop-shadow-lg">
-              Problem Solving & Competitions
-            </h2>
-            <div className="w-24 h-1.5 bg-gradient-to-r from-yellow-500 via-orange-400 to-yellow-600 mt-6 rounded-full shadow-lg shadow-yellow-500/50" />
-            <p className="mt-8 max-w-3xl text-lg text-gray-200 leading-relaxed font-normal">
-              I'm passionate about competitive programming and problem-solving. Here are some of my achievements across various platforms.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div 
-              className="reveal-animation bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-2xl p-8 shadow-xl border border-gray-600/40 backdrop-blur-sm text-center"
-              ref={addToRefs}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
             >
-              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-blue-500/30 to-cyan-500/30 rounded-full flex items-center justify-center border border-blue-400/40">
-                <svg className="w-10 h-10 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-4">LeetCode & GFG</h3>
-              <p className="text-4xl font-bold text-blue-400 mb-2">400+</p>
-              <p className="text-gray-300">Problems Solved</p>
-              <p className="text-sm text-gray-400 mt-3">Building strong problem-solving skills and algorithmic thinking</p>
-            </div>
-            
-            <div 
-              className="reveal-animation bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-2xl p-8 shadow-xl border border-gray-600/40 backdrop-blur-sm text-center"
-              style={{ transitionDelay: "0.2s" }}
-              ref={addToRefs}
-            >
-              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-yellow-500/30 to-orange-500/30 rounded-full flex items-center justify-center border border-yellow-400/40">
-                <svg className="w-10 h-10 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-4">CodeChef</h3>
-              <p className="text-4xl font-bold text-yellow-400 mb-2">3⭐</p>
-              <p className="text-gray-300">Rating</p>
-              <p className="text-sm text-gray-400 mt-3">Consistent performance in competitive programming contests</p>
-            </div>
-            
-            <div 
-              className="reveal-animation bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-2xl p-8 shadow-xl border border-gray-600/40 backdrop-blur-sm text-center"
-              style={{ transitionDelay: "0.4s" }}
-              ref={addToRefs}
-            >
-              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-full flex items-center justify-center border border-purple-400/40">
-                <svg className="w-10 h-10 text-purple-400" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-4">Codeforces</h3>
-              <p className="text-4xl font-bold text-purple-400 mb-2">1200+</p>
-              <p className="text-gray-300">Rating</p>
-              <p className="text-sm text-gray-400 mt-3">Participating in global programming competitions</p>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      {/* Personal Story Section */}
-      <section className="py-20 relative">
-        <div 
-          className="container mx-auto px-6 reveal-animation"
-          ref={addToRefs}
-        >
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-16">
-              <span className="inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/25 border border-indigo-400/30">
-                📖 My Story
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-xs font-medium mb-6">
+                About Me
               </span>
-              <h2 className="text-4xl md:text-5xl font-bold mt-6 text-white leading-tight bg-gradient-to-r from-indigo-400 via-purple-300 to-indigo-500 bg-clip-text text-transparent drop-shadow-lg">
-                The Journey So Far
-              </h2>
-              <div className="w-24 h-1.5 bg-gradient-to-r from-indigo-500 via-purple-400 to-indigo-600 mt-6 rounded-full shadow-lg shadow-indigo-500/50" />
-            </div>
-            
-            <div className="bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-3xl p-8 md:p-12 border border-gray-600/40 backdrop-blur-sm shadow-2xl">
-              <div className="space-y-8 text-lg text-gray-200 leading-relaxed font-normal">
-                <p>
-                  I'm a Computer Science student at G B Pant DSEU Okhla 1 Campus, passionate about building modern web applications. With expertise in the MERN stack and a focus on creating accessible, user-friendly interfaces, I strive to deliver high-quality code and exceptional user experiences.
-                </p>
-                <p>
-                  My journey in programming started with curiosity and has evolved into a deep passion for creating efficient, elegant solutions to complex problems. I'm constantly learning and experimenting with new technologies to expand my skill set.
-                </p>
-                <p>
-                  I've solved over 400 DSA problems on LeetCode & GFG, achieved 
-                  <span className="inline-flex items-center space-x-2 mx-2 px-3 py-1.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-full text-base font-semibold shadow-lg shadow-yellow-500/25">
-                    <span>3⭐</span>
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                  </span>
-                  at CodeChef, and maintain a 1200+ rating at Codeforces.
-                </p>
-                <p>
-                  My journey in tech is driven by curiosity and a continuous desire to learn and grow. I believe in the power of technology to solve real-world problems and create meaningful impact.
-                </p>
-              </div>
-            </div>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
+                Computer Science Student <span className="text-muted-foreground">&</span> <br />
+                <span className="text-primary">Full Stack Developer</span>
+              </h1>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                Building digital products with a focus on experience, aesthetics, and performance.
+              </p>
+            </motion.div>
           </div>
         </div>
       </section>
+
+      <div className="container mx-auto px-6 space-y-24">
+
+        {/* Story & Image */}
+        <section>
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <motion.div
+              className="order-2 md:order-1 space-y-6 text-lg text-muted-foreground leading-relaxed"
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <p>
+                Hello! I'm <strong className="text-foreground">Mohd Adnan</strong>. My journey in programming started with curiosity and has evolved into a deep passion for creating efficient, elegant solutions to complex problems.
+              </p>
+              <p>
+                I specialize in the <strong className="text-foreground">MERN stack</strong> and modern web technologies. I believe that good code is not just about functionality, but also about readability, maintainability, and scalability.
+              </p>
+              <p>
+                When I'm not coding, you can find me solving algorithmic challenges on LeetCode or exploring the latest trends in technology.
+              </p>
+            </motion.div>
+
+            <motion.div
+              className="order-1 md:order-2 flex justify-center"
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="relative w-72 h-72 md:w-96 md:h-96 rounded-2xl overflow-hidden shadow-2xl border border-border/50 bg-secondary/50">
+                {/* Real Image or Placeholder */}
+                <img
+                  src={profileImage}
+                  alt="Mohd Adnan"
+                  className="w-full h-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
+                />
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Stats / Achievements */}
+        <section>
+          <motion.div
+            variants={container}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          >
+            {[
+              { icon: <Code size={32} />, value: "1200+", label: "Problems Solved on LeetCode, Codeforces & GFG", color: "text-blue-500" },
+              { icon: <Trophy size={32} />, value: "3⭐", label: "CodeChef Rating", color: "text-yellow-500" },
+              { icon: <Award size={32} />, value: "1580", label: "Specialist on Codeforces", color: "text-purple-500" },
+            ].map((stat, i) => (
+              <motion.div
+                key={i}
+                variants={item}
+                className="p-8 rounded-xl bg-card border border-border hover:border-primary/20 transition-all hover:shadow-lg text-center group"
+              >
+                <div className={`mb - 4 inline - flex p - 3 rounded - full bg - secondary ${stat.color} group - hover: scale - 110 transition - transform`}>
+                  {stat.icon}
+                </div>
+                <h3 className="text-3xl font-bold mb-2">{stat.value}</h3>
+                <p className="text-muted-foreground">{stat.label}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </section>
+
+        {/* Skills */}
+        <section>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Technical Expertise</h2>
+            <p className="text-muted-foreground">The tools and technologies I work with.</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {Object.entries(skills).map(([category, items], i) => (
+              <motion.div
+                key={category}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="p-6 rounded-xl bg-card border border-border"
+              >
+                <h3 className="text-lg font-semibold capitalize mb-4 text-primary">{category}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {items.map((skill) => (
+                    <SkillBadge key={skill} name={skill} />
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* Education */}
+        <section className="max-w-3xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Education</h2>
+          </div>
+          <div className="space-y-6">
+            {education.map((edu, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="flex flex-col sm:flex-row justify-between items-start gap-4 p-6 rounded-xl bg-secondary/30 border border-border"
+              >
+                <div className="flex gap-4">
+                  <div className="mt-1 p-2 bg-primary/10 rounded-lg text-primary">
+                    <BookOpen size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">{edu.degree}</h3>
+                    <p className="text-muted-foreground">{edu.institution}</p>
+                    {edu.gpa && <p className="text-sm font-medium text-primary mt-1">{edu.gpa}</p>}
+                  </div>
+                </div>
+                <span className="px-3 py-1 rounded-full bg-background border border-border text-xs font-medium text-muted-foreground whitespace-nowrap">
+                  {edu.duration}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="py-20 text-center">
+          <div className="p-12 rounded-3xl bg-primary/5 border border-primary/10">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to work together?</h2>
+            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+              I'm always interested in new opportunities and challenges. Let's create something amazing together!
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link to="/projects" className="px-8 py-3 rounded-full bg-secondary text-secondary-foreground font-medium hover:bg-secondary/80 transition-colors">
+                View Projects
+              </Link>
+              <Link to="/contact" className="px-8 py-3 rounded-full bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
+                Get in Touch
+              </Link>
+            </div>
+          </div>
+        </section>
+
+      </div>
     </div>
   );
 };
 
 export default About;
+

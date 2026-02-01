@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import AdminDashboard from "./pages/AdminDashboard";
+import Layout from "./components/Layout";
 
 const queryClient = new QueryClient();
 
@@ -20,7 +21,7 @@ const ScrollToTop = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-  
+
   return null;
 };
 
@@ -31,8 +32,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <ScrollToTop />
-        <Navbar />
-        <main>
+        <Layout>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
@@ -41,8 +41,7 @@ const App = () => (
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </main>
-        <Footer />
+        </Layout>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

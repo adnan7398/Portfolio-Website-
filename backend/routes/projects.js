@@ -6,7 +6,6 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-
 const uploadsDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -21,7 +20,7 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   limits: {
     fileSize: 5 * 1024 * 1024
@@ -37,14 +36,13 @@ const upload = multer({
 
 router.post('/', auth, upload.single('image'), async (req, res) => {
   try {
-    const { title, description, techStack, githubUrl, liveUrl } = req.body;
+    const { title, description, category, techStack, githubUrl, liveUrl } = req.body;
     if (!title || !description) {
       return res.status(400).json({ error: 'Title and description are required' });
     }
 
     let imageUrl = '';
     if (req.file) {
-
       imageUrl = `/uploads/${req.file.filename}`;
     } else {
       imageUrl = '/uploads/placeholder.svg';
@@ -63,6 +61,7 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
     const project = new Project({
       title,
       description,
+      category: category || 'Frontend',
       imageUrl,
       techStack: techArray,
       githubUrl: githubUrl || '',
@@ -78,28 +77,20 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
   }
 });
 
-
-
 // GET /api/projects - Get all projects (public)
 router.get('/', async (req, res) => {
   try {
     console.log('Fetching projects...');
-    
-
-    
     const projects = await Project.find().sort({ createdAt: -1 });
     console.log(`Found ${projects.length} projects`);
-    
+
     // Ensure we always return an array
     const projectsArray = Array.isArray(projects) ? projects : [];
-    
+
     res.json(projectsArray);
   } catch (error) {
     console.error('Error fetching projects:', error);
-    
-
-    
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to fetch projects',
       message: 'An unexpected error occurred',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -120,9 +111,10 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch project' });
   }
 });
+
 router.put('/:id', auth, upload.single('image'), async (req, res) => {
   try {
-    const { title, description, techStack, githubUrl, liveUrl } = req.body;
+    const { title, description, category, techStack, githubUrl, liveUrl } = req.body;
     if (!title || !description) {
       return res.status(400).json({ error: 'Title and description are required' });
     }
@@ -130,6 +122,7 @@ router.put('/:id', auth, upload.single('image'), async (req, res) => {
     const updateData = {
       title,
       description,
+      category: category || 'Frontend',
       githubUrl: githubUrl || '',
       liveUrl: liveUrl || ''
     };
@@ -183,4 +176,4 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
-module.exports = router; 
+module.exports = router;

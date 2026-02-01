@@ -20,10 +20,12 @@ const AdminDashboard = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState<'projects' | 'messages' | 'upload' | 'profile'>('projects');
+  const [tab, setTab] = useState<'projects' | 'messages' | 'upload' | 'profile' | 'coding-profiles'>('projects');
+  const [categoryFilter, setCategoryFilter] = useState<'All' | 'Frontend' | 'Full Stack' | 'Landing Page'>('All');
   const [uploadData, setUploadData] = useState({
     title: '',
     description: '',
+    category: 'Frontend',
     techStack: '',
     githubUrl: '',
     liveUrl: '',
@@ -37,6 +39,14 @@ const AdminDashboard = () => {
   const [profileUploading, setProfileUploading] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [profileSuccess, setProfileSuccess] = useState("");
+
+  const [codingProfiles, setCodingProfiles] = useState({
+    leetcode: '',
+    codeforces: '',
+    codechef: '',
+    github: ''
+  });
+  const [codingProfilesMessage, setCodingProfilesMessage] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,10 +103,19 @@ const AdminDashboard = () => {
       fetch(buildApiUrl('/api/messages'), {
         headers: { Authorization: `Bearer ${getToken()}` },
       }).then(r => r.json()),
+      fetch(buildApiUrl('/api/profile')).then(r => r.json()),
     ])
-      .then(([projectsData, messagesData]) => {
+      .then(([projectsData, messagesData, profileData]) => {
         setProjects(projectsData);
         setMessages(messagesData);
+        if (profileData) {
+          setCodingProfiles({
+            leetcode: profileData.leetcode || '',
+            codeforces: profileData.codeforces || '',
+            codechef: profileData.codechef || '',
+            github: profileData.github || ''
+          });
+        }
       })
       .catch(err => console.error("Error fetching data:", err))
       .finally(() => setLoading(false));
@@ -132,13 +151,13 @@ const AdminDashboard = () => {
     try {
       await fetch(buildApiUrl(`/api/messages/${id}/read`), {
         method: "PATCH",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${getToken()}` 
+          Authorization: `Bearer ${getToken()}`
         },
         body: JSON.stringify({ read }),
       });
-      setMessages(messages.map(m => 
+      setMessages(messages.map(m =>
         m._id === id ? { ...m, read } : m
       ));
     } catch (err) {
@@ -152,6 +171,8 @@ const AdminDashboard = () => {
     if (type === 'file') {
       const file = (e.target as HTMLInputElement).files?.[0];
       setUploadData(prev => ({ ...prev, image: file || null }));
+    } else if (name === 'category') {
+      setUploadData(prev => ({ ...prev, category: value }));
     } else {
       setUploadData(prev => ({ ...prev, [name]: value }));
     }
@@ -168,6 +189,7 @@ const AdminDashboard = () => {
       const formData = new FormData();
       formData.append("title", uploadData.title);
       formData.append("description", uploadData.description);
+      formData.append("category", uploadData.category);
       formData.append("techStack", uploadData.techStack);
       formData.append("githubUrl", uploadData.githubUrl);
       formData.append("liveUrl", uploadData.liveUrl);
@@ -188,12 +210,13 @@ const AdminDashboard = () => {
       setUploadData({
         title: '',
         description: '',
+        category: 'Frontend',
         techStack: '',
         githubUrl: '',
         liveUrl: '',
         image: null,
       });
-      
+
       // Refresh projects list
       const projectsRes = await fetch(buildApiUrl('/api/projects'));
       const projectsData = await projectsRes.json();
@@ -239,6 +262,26 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUpdateCodingProfiles = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCodingProfilesMessage("");
+    try {
+      const res = await fetch(buildApiUrl('/api/profile'), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`
+        },
+        body: JSON.stringify(codingProfiles)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update');
+      setCodingProfilesMessage("Coding profiles updated successfully!");
+    } catch (error: any) {
+      setCodingProfilesMessage(error.message || "Failed to update");
+    }
+  };
+
   // Handle profile image change
   const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -248,24 +291,24 @@ const AdminDashboard = () => {
   if (!isLoggedIn) {
     return (
       <div className="max-w-md mx-auto mt-20 p-6 bg-white rounded shadow">
-        <h2 className="text-2xl font-bold mb-4">{isRegistering? 'Admin Registration' : 'Admin Login'}</h2>
+        <h2 className="text-2xl font-bold mb-4">{isRegistering ? 'Admin Registration' : 'Admin Login'}</h2>
         <form onSubmit={isRegistering ? handleRegister : handleLogin} className="space-y-4">
           <input type="email" name="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="w-full border p-2 rounded" required />
           <input type="password" name="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="w-full border p-2 rounded" required />
           {loginError && <div className={`text-sm ${loginError.includes('successful') ? 'text-green-600' : 'text-red-600'}`}>{loginError}</div>}
-          <button type="submit" className="w-full bg-brand-blue text-white py-2 rounded">
-            {isRegistering ==false? 'Register' : 'Login'}
+          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded">
+            {isRegistering == false ? 'Register' : 'Login'}
           </button>
         </form>
         <div className="mt-4 text-center">
-          <button 
+          <button
             onClick={() => {
               setIsRegistering(!isRegistering);
               setLoginError("");
               setEmail("");
               setPassword("");
             }}
-            className="text-brand-blue hover:underline"
+            className="text-blue-600 hover:underline"
           >
             {isRegistering ? 'Already have an account? Login' : 'Need an account? Register'}
           </button>
@@ -281,20 +324,34 @@ const AdminDashboard = () => {
         <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">Logout</button>
       </div>
       <div className="mb-6 flex gap-4">
-        <button onClick={() => setTab('projects')} className={`px-4 py-2 rounded ${tab === 'projects' ? 'bg-brand-blue text-white' : 'bg-gray-100'}`}>Projects</button>
-        <button onClick={() => setTab('messages')} className={`px-4 py-2 rounded ${tab === 'messages' ? 'bg-brand-blue text-white' : 'bg-gray-100'}`}>Messages</button>
-        <button onClick={() => setTab('upload')} className={`px-4 py-2 rounded ${tab === 'upload' ? 'bg-brand-blue text-white' : 'bg-gray-100'}`}>Upload Project</button>
-        <button onClick={() => setTab('profile')} className={`px-4 py-2 rounded ${tab === 'profile' ? 'bg-brand-blue text-white' : 'bg-gray-100'}`}>Profile Image</button>
+        <button onClick={() => setTab('projects')} className={`px-4 py-2 rounded ${tab === 'projects' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>Projects</button>
+        <button onClick={() => setTab('messages')} className={`px-4 py-2 rounded ${tab === 'messages' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>Messages</button>
+        <button onClick={() => setTab('upload')} className={`px-4 py-2 rounded ${tab === 'upload' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>Upload Project</button>
+        <button onClick={() => setTab('profile')} className={`px-4 py-2 rounded ${tab === 'profile' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>Profile Image</button>
+        <button onClick={() => setTab('coding-profiles')} className={`px-4 py-2 rounded ${tab === 'coding-profiles' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>Coding Profiles</button>
       </div>
       {loading && <div>Loading...</div>}
       {tab === 'projects' && !loading && (
         <div>
-          <h3 className="text-xl font-semibold mb-4">Projects</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-semibold">Projects</h3>
+            <div className="flex gap-2">
+              {['All', 'Frontend', 'Full Stack', 'Landing Page'].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setCategoryFilter(cat as any)}
+                  className={`px-3 py-1 text-sm rounded ${categoryFilter === cat ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-800'}`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
           <ul>
-            {projects.map(p => (
+            {projects.filter(p => categoryFilter === 'All' || p.category === categoryFilter).map(p => (
               <li key={p._id} className="mb-2 flex justify-between items-center border-b pb-2">
                 <div>
-                  <div className="font-bold">{p.title}</div>
+                  <div className="font-bold">{p.title} <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded ml-2">{p.category || 'Frontend'}</span></div>
                   <div className="text-sm text-gray-600">{p.description}</div>
                 </div>
                 <button onClick={() => handleDeleteProject(p._id)} className="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
@@ -330,6 +387,11 @@ const AdminDashboard = () => {
           <h3 className="text-xl font-semibold mb-4">Upload New Project</h3>
           <form onSubmit={handleUpload} className="space-y-4">
             <input type="text" name="title" placeholder="Title" value={uploadData.title} onChange={handleUploadChange} className="w-full border p-2 rounded" required />
+            <select name="category" value={uploadData.category} onChange={handleUploadChange as any} className="w-full border p-2 rounded">
+              <option value="Frontend">Frontend</option>
+              <option value="Full Stack">Full Stack</option>
+              <option value="Landing Page">Landing Page</option>
+            </select>
             <textarea name="description" placeholder="Description" value={uploadData.description} onChange={handleUploadChange} className="w-full border p-2 rounded" required />
             <input type="text" name="techStack" placeholder="Tech Stack (comma separated)" value={uploadData.techStack} onChange={handleUploadChange} className="w-full border p-2 rounded" required />
             <input type="text" name="githubUrl" placeholder="GitHub URL" value={uploadData.githubUrl} onChange={handleUploadChange} className="w-full border p-2 rounded" />
@@ -337,7 +399,7 @@ const AdminDashboard = () => {
             <input type="file" name="image" accept="image/*" onChange={handleUploadChange} className="w-full" required />
             {uploadError && <div className="text-red-600">{uploadError}</div>}
             {uploadSuccess && <div className="text-green-600">{uploadSuccess}</div>}
-            <button type="submit" className="w-full bg-brand-blue text-white py-2 rounded" disabled={uploading}>{uploading ? 'Uploading...' : 'Upload'}</button>
+            <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded" disabled={uploading}>{uploading ? 'Uploading...' : 'Upload'}</button>
           </form>
         </div>
       )}
@@ -345,22 +407,47 @@ const AdminDashboard = () => {
         <div>
           <h3 className="text-xl font-semibold mb-4">Upload Profile Image</h3>
           <form onSubmit={handleProfileUpload} className="space-y-4">
-            <input 
-              type="file" 
-              accept="image/*" 
-              onChange={handleProfileImageChange} 
-              className="w-full" 
-              required 
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleProfileImageChange}
+              className="w-full"
+              required
             />
             {profileError && <div className="text-red-600">{profileError}</div>}
             {profileSuccess && <div className="text-green-600">{profileSuccess}</div>}
-            <button 
-              type="submit" 
-              className="w-full bg-brand-blue text-white py-2 rounded" 
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-2 rounded"
               disabled={profileUploading}
             >
               {profileUploading ? 'Uploading...' : 'Upload Profile Image'}
             </button>
+          </form>
+        </div>
+      )}
+      {tab === 'coding-profiles' && (
+        <div>
+          <h3 className="text-xl font-semibold mb-4">Coding Profiles</h3>
+          <form onSubmit={handleUpdateCodingProfiles} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium">LeetCode URL</label>
+              <input type="text" value={codingProfiles.leetcode} onChange={e => setCodingProfiles({ ...codingProfiles, leetcode: e.target.value })} className="w-full border p-2 rounded" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Codeforces URL</label>
+              <input type="text" value={codingProfiles.codeforces} onChange={e => setCodingProfiles({ ...codingProfiles, codeforces: e.target.value })} className="w-full border p-2 rounded" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">CodeChef URL</label>
+              <input type="text" value={codingProfiles.codechef} onChange={e => setCodingProfiles({ ...codingProfiles, codechef: e.target.value })} className="w-full border p-2 rounded" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">GitHub URL</label>
+              <input type="text" value={codingProfiles.github} onChange={e => setCodingProfiles({ ...codingProfiles, github: e.target.value })} className="w-full border p-2 rounded" />
+            </div>
+            {codingProfilesMessage && <div className={`text-sm ${codingProfilesMessage.includes('success') ? 'text-green-600' : 'text-red-600'}`}>{codingProfilesMessage}</div>}
+            <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded">Update Profiles</button>
           </form>
         </div>
       )}

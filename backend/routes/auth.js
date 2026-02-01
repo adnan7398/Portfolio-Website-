@@ -18,7 +18,7 @@ router.post('/register', async (req, res) => {
       message: 'Password must contain at least one uppercase letter, one lowercase letter, and one special character.'
     })
   });
-  
+
   try {
     const parsedBody = requirebody.parse(req.body);
     const { email, password } = parsedBody;
@@ -39,13 +39,22 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
     const admin = await Admin.findOne({ email });
     if (!admin) return res.status(400).json({ message: 'Invalid credentials' });
+
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+
     const token = jwt.sign({ id: admin._id, email: admin.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.json({ token });
   } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });

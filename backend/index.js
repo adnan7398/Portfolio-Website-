@@ -10,7 +10,7 @@ app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
     const allowedOrigins = [
       'http://localhost:8081',
       'http://localhost:8080',
@@ -19,22 +19,22 @@ app.use(cors({
       'https://portfolio-website-ruddy-kappa-93.vercel.app',
       'https://portfolio-website-git-main-adnans-projects-c715e72e.vercel.app'
     ];
-    
+
     // Check if origin is allowed
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    
+
     // Allow all Vercel deployments
     if (origin.includes('.vercel.app')) {
       return callback(null, true);
     }
-    
+
     // Allow all localhost ports for development
     if (origin.startsWith('http://localhost:')) {
       return callback(null, true);
     }
-    
+
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -58,11 +58,16 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 //   }
 // });
 
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.MONGODB_URI, {
+  serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+  socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+  bufferCommands: false, // Disable mongoose buffering
+})
   .then(() => console.log('✅ MongoDB connected'))
   .catch(err => {
-    console.error(' MongoDB connection error:', err);
+    console.error('❌ MongoDB connection error:', err.message);
     console.error('MONGODB_URI:', process.env.MONGODB_URI ? 'Set' : 'NOT SET');
+    console.error('💡 Make sure your IP is whitelisted in MongoDB Atlas Network Access');
   });
 
 const authRoutes = require('./routes/auth');
@@ -76,8 +81,8 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/profile', profileRoutes);
 
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
     message: 'Server is running',
     environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString()
@@ -86,14 +91,14 @@ app.get('/api/health', (req, res) => {
 
 app.get('/test', (req, res) => {
   console.log(`${new Date().toISOString()} - GET /test`);
-  res.json({ 
+  res.json({
     message: 'Backend is working!',
     environment: process.env.NODE_ENV || 'development'
   });
 });
 
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     message: 'Portfolio Backend API',
     version: '1.0.0',
     environment: process.env.NODE_ENV || 'development',

@@ -1,72 +1,39 @@
-
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import ProjectCard from "@/components/ProjectCard";
 import { cn, buildApiUrl } from "@/lib/utils";
-
-
+import { Loader2, AlertCircle, X, Github, ExternalLink, Calendar } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 
 const Projects = () => {
-  // For intersection observer to trigger animations
-  const revealRefs = useRef<(HTMLDivElement | null)[]>([]);
-  
-  // Filters for project categories
-  const [activeFilter, setActiveFilter] = useState("all");
-  
-  // Project data from backend
+  // State
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [selectedProject, setSelectedProject] = useState<any | null>(null);
 
   useEffect(() => {
     const fetchProjects = async () => {
       setLoading(true);
-      setError(null);
-      
       try {
-        console.log(`Fetching projects from: ${buildApiUrl('/api/projects')}`);
-        
-        // Add timeout to the fetch request
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-        
-        const res = await fetch(buildApiUrl('/api/projects'), {
-          signal: controller.signal,
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
-          throw new Error(errorData.message || `HTTP ${res.status}: ${res.statusText}`);
-        }
-        
+        const res = await fetch(buildApiUrl('/api/projects'));
+        if (!res.ok) throw new Error('Failed to fetch projects');
         const data = await res.json();
-        console.log("Projects fetched successfully:", data);
-        
-        if (Array.isArray(data)) {
-          setProjects(data);
-        } else {
-          throw new Error("Invalid data format received from API");
-        }
-      } catch (err: any) {
-        console.error("Error fetching projects:", err);
-        
-        // Handle specific error types
-        let errorMessage = "Unknown error";
-        if (err.name === 'AbortError') {
-          errorMessage = "Request timeout - server took too long to respond";
-        } else if (err.message.includes('Failed to fetch')) {
-          errorMessage = "Network error - unable to connect to server";
-        } else if (err.message) {
-          errorMessage = err.message;
-        }
-        
-        setError(errorMessage);
-        setProjects([]);
+        setProjects(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load projects. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -74,294 +41,207 @@ const Projects = () => {
     fetchProjects();
   }, []);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('active');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      {
-        threshold: 0.1,
-      }
-    );
-    
-    revealRefs.current.forEach((ref) => {
-      if (ref) observer.observe(ref);
-    });
-    
-    return () => observer.disconnect();
-  }, [projects]);
-  
-  // Add elements to the reveal refs
-  const addToRefs = (el: HTMLDivElement | null) => {
-    if (el && !revealRefs.current.includes(el)) {
-      revealRefs.current.push(el);
-    }
-  };
-  
-  // Filter categories
+  // Filtering
   const filters = [
     { value: "all", label: "All Projects" },
     { value: "frontend", label: "Frontend" },
     { value: "backend", label: "Backend" },
     { value: "fullstack", label: "Full Stack" },
   ];
-  
-  // Filtered projects based on active filter
-  const filteredProjects = activeFilter === "all" 
-    ? projects 
+
+  const filteredProjects = activeFilter === "all"
+    ? projects
     : projects.filter(project => {
-        const techStack = project.techStack || project.technologies || [];
-        return techStack.some((tech: string) => 
-          tech.toLowerCase().includes(activeFilter.toLowerCase())
-        ) || project.category === activeFilter;
-      });
+      const techStack = project.techStack || project.technologies || [];
+      const category = project.category || "";
+      return techStack.some((tech: string) =>
+        tech.toLowerCase().includes(activeFilter.toLowerCase())
+      ) || category.toLowerCase() === activeFilter.toLowerCase();
+    });
+
+  // Animation variants
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 via-slate-800 to-slate-900 pt-20 pb-20 overflow-x-hidden">
-      {/* Projects Hero Section */}
-      <section className="py-20 relative">
-        <div className="container mx-auto px-6">
+    <div className="min-h-screen pb-20 overflow-x-hidden">
+      {/* Hero Section */}
+      <section className="pt-32 pb-12 bg-background relative overflow-hidden">
+        <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px] opacity-50" />
+
+        <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <span className="inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25 border border-blue-400/30 animate-fade-in">
-              ✨ My Work
-            </span>
-            <h1 className="text-4xl md:text-5xl font-bold mt-6 text-white leading-tight bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent drop-shadow-lg animate-fade-in" style={{ animationDelay: "0.2s" }}>
-              Projects & Case Studies
-            </h1>
-            <div className="w-24 h-1.5 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600 mt-6 rounded-full mx-auto shadow-lg shadow-blue-500/50 animate-fade-in" style={{ animationDelay: "0.3s" }} />
-            <p className="mt-8 max-w-3xl mx-auto text-lg text-gray-200 leading-relaxed font-normal animate-fade-in" style={{ animationDelay: "0.4s" }}>
-              Explore my portfolio of web applications and development projects. Each project represents my problem-solving approach and technical skills in action.
-            </p>
-          </div>
-        </div>
-      </section>
-      
-
-      
-      {/* Projects Showcase Section */}
-      <section className="py-20 relative">
-        <div className="container mx-auto px-6">
-          {/* Filter Buttons */}
-          <div className="flex flex-wrap justify-center gap-4 mb-16">
-            {filters.map((filter) => (
-              <button
-                key={filter.value}
-                onClick={() => setActiveFilter(filter.value)}
-                className={cn(
-                  "px-6 py-3 rounded-full font-medium transition-all duration-300 border-2",
-                  activeFilter === filter.value
-                    ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white border-blue-400 shadow-lg shadow-blue-500/25"
-                    : "bg-transparent text-gray-300 border-gray-600 hover:border-blue-400 hover:text-blue-300"
-                )}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-
-
-
-          {/* Loading State */}
-          {loading && (
-            <div className="flex items-center justify-center py-20">
-              <div className="flex items-center space-x-3 text-blue-300 font-medium">
-                <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-xl">Loading projects...</span>
-              </div>
-            </div>
-          )}
-
-          {/* Error State */}
-          {error && (
-            <div className="text-center py-20">
-              <div className="max-w-md mx-auto px-6 py-8 bg-gradient-to-r from-red-900/40 to-orange-900/40 border border-red-500/50 rounded-2xl backdrop-blur-sm shadow-xl">
-                <p className="text-red-200 text-lg font-medium mb-4">Failed to load projects</p>
-                <p className="text-red-300 text-base">{error}</p>
-                <button 
-                  onClick={() => window.location.reload()}
-                  className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  Try Again
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Projects Grid */}
-          {!loading && filteredProjects.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredProjects.map((project, index) => (
-                <div
-                  key={project._id || index}
-                  className="reveal-animation transform hover:scale-105 transition-all duration-300"
-                  style={{ transitionDelay: `${0.1 * index}s` }}
-                  ref={addToRefs}
-                >
-                  <ProjectCard {...project} />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Empty State */}
-          {!loading && filteredProjects.length === 0 && (
-            <div className="text-center py-20">
-              <h3 className="text-2xl font-bold text-gray-300 mb-4">No projects found in this category</h3>
-              <p className="text-gray-400 text-lg">Try selecting a different category from the filter options above.</p>
-              {projects.length === 0 && (
-                <div className="mt-8 max-w-md mx-auto px-6 py-6 bg-gradient-to-r from-orange-900/40 to-red-900/40 border border-orange-500/50 rounded-2xl backdrop-blur-sm shadow-xl">
-                  <p className="text-orange-200 text-base">
-                    No projects are currently available. Please check back later or contact me for more information about my work.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
-      
-      {/* Project Process Section */}
-      <section className="py-20 relative">
-        <div 
-          className="container mx-auto px-6 reveal-animation"
-          ref={addToRefs}
-        >
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-16">
-              <span className="inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25 border border-green-400/30">
-                🚀 My Approach
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-xs font-medium mb-6">
+                Portfolio
               </span>
-              <h2 className="text-4xl md:text-5xl font-bold mt-6 text-white leading-tight bg-gradient-to-r from-green-400 via-emerald-300 to-green-500 bg-clip-text text-transparent drop-shadow-lg">
-                Development Process
-              </h2>
-              <div className="w-24 h-1.5 bg-gradient-to-r from-green-500 via-emerald-400 to-green-600 mt-6 rounded-full mx-auto shadow-lg shadow-green-500/50" />
-            </div>
-            
-            <div className="space-y-12">
-              {/* Process Steps */}
-              <div 
-                className="flex flex-col md:flex-row gap-8 items-center reveal-animation p-8 bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-2xl border border-gray-600/40 backdrop-blur-sm"
-                ref={addToRefs}
-              >
-                <div className="md:w-1/4 flex justify-center">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-r from-green-500/30 to-emerald-500/30 flex items-center justify-center border border-green-400/40">
-                    <span className="text-green-400 text-3xl font-bold">1</span>
-                  </div>
-                </div>
-                <div className="md:w-3/4">
-                  <h3 className="text-xl font-semibold mb-3 text-white text-center md:text-left">Planning & Research</h3>
-                  <p className="text-gray-300 leading-relaxed">
-                    I begin by thoroughly understanding the project requirements and conducting research on the best approaches. This includes analyzing similar solutions, identifying potential challenges, and planning the architecture.
-                  </p>
-                </div>
-              </div>
-              
-              <div 
-                className="flex flex-col md:flex-row gap-8 items-center reveal-animation p-8 bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-2xl border border-gray-600/40 backdrop-blur-sm"
-                style={{ transitionDelay: "0.2s" }}
-                ref={addToRefs}
-              >
-                <div className="md:w-1/4 flex justify-center">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-r from-green-500/30 to-emerald-500/30 flex items-center justify-center border border-green-400/40">
-                    <span className="text-green-400 text-3xl font-bold">2</span>
-                  </div>
-                </div>
-                <div className="md:w-3/4">
-                  <h3 className="text-xl font-semibold mb-3 text-white text-center md:text-left">Design & Prototyping</h3>
-                  <p className="text-gray-300 leading-relaxed">
-                    Next, I create wireframes and prototypes to visualize the solution. This step helps in identifying usability issues early and ensuring the final product meets user expectations.
-                  </p>
-                </div>
-              </div>
-              
-              <div 
-                className="flex flex-col md:flex-row gap-8 items-center reveal-animation p-8 bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-2xl border border-gray-600/40 backdrop-blur-sm"
-                style={{ transitionDelay: "0.4s" }}
-                ref={addToRefs}
-              >
-                <div className="md:w-1/4 flex justify-center">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-r from-green-500/30 to-emerald-500/30 flex items-center justify-center border border-green-400/40">
-                    <span className="text-green-400 text-3xl font-bold">3</span>
-                  </div>
-                </div>
-                <div className="md:w-3/4">
-                  <h3 className="text-xl font-semibold mb-3 text-white text-center md:text-left">Development</h3>
-                  <p className="text-gray-300 leading-relaxed">
-                    During development, I focus on writing clean, maintainable code following best practices. I break down complex features into manageable components and use version control for collaborative work.
-                  </p>
-                </div>
-              </div>
-              
-              <div 
-                className="flex flex-col md:flex-row gap-8 items-center reveal-animation p-8 bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-2xl border border-gray-600/40 backdrop-blur-sm"
-                style={{ transitionDelay: "0.6s" }}
-                ref={addToRefs}
-              >
-                <div className="md:w-1/4 flex justify-center">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-r from-green-500/30 to-emerald-500/30 flex items-center justify-center border border-green-400/40">
-                    <span className="text-green-400 text-3xl font-bold">4</span>
-                  </div>
-                </div>
-                <div className="md:w-3/4">
-                  <h3 className="text-xl font-semibold mb-3 text-white text-center md:text-left">Testing & Optimization</h3>
-                  <p className="text-gray-300 leading-relaxed">
-                    Rigorous testing ensures the application works correctly across different devices and browsers. I also optimize for performance, accessibility, and SEO to deliver a high-quality product.
-                  </p>
-                </div>
-              </div>
-              
-              <div 
-                className="flex flex-col md:flex-row gap-8 items-center reveal-animation p-8 bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-2xl border border-gray-600/40 backdrop-blur-sm"
-                style={{ transitionDelay: "0.8s" }}
-                ref={addToRefs}
-              >
-                <div className="md:w-1/4 flex justify-center">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-r from-green-500/30 to-emerald-500/30 flex items-center justify-center border border-green-400/40">
-                    <span className="text-green-400 text-3xl font-bold">5</span>
-                  </div>
-                </div>
-                <div className="md:w-3/4">
-                  <h3 className="text-xl font-semibold mb-3 text-white text-center md:text-left">Deployment & Maintenance</h3>
-                  <p className="text-gray-300 leading-relaxed">
-                    Finally, I deploy the application to a production environment and provide ongoing maintenance and support. I'm committed to the long-term success of every project I work on.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      {/* Collaboration CTA */}
-      <section className="py-20 relative">
-        <div 
-          className="container mx-auto px-6 reveal-animation"
-          ref={addToRefs}
-        >
-          <div className="max-w-4xl mx-auto bg-gradient-to-br from-blue-900/40 to-cyan-900/40 rounded-3xl p-8 md:p-12 border border-blue-500/40 backdrop-blur-sm shadow-2xl">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-white">
-                Have a project in mind?
-              </h2>
-              <p className="mt-6 text-gray-200 text-lg max-w-2xl mx-auto leading-relaxed">
-                I'm currently available for freelance projects and open to collaboration.
-                Let's discuss how we can work together to bring your ideas to life.
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
+                My <span className="text-primary">Projects</span>
+              </h1>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                A collection of projects showcasing my journey and technical capabilities.
               </p>
-              <a 
-                href="/contact" 
-                className="mt-8 inline-block bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold px-8 py-4 rounded-xl hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg shadow-blue-500/25"
-              >
-                Let's Talk
-              </a>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
+
+      {/* Content */}
+      <div className="container mx-auto px-6">
+        {/* Filters */}
+        <div className="flex flex-wrap justify-center gap-2 mb-16">
+          {filters.map((filter) => (
+            <button
+              key={filter.value}
+              onClick={() => setActiveFilter(filter.value)}
+              className={cn(
+                "px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border",
+                activeFilter === filter.value
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-foreground"
+              )}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Projects Grid */}
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="animate-spin text-primary" size={32} />
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center text-red-500">
+            <AlertCircle size={32} className="mb-4" />
+            <p>{error}</p>
+          </div>
+        ) : filteredProjects.length > 0 ? (
+          <motion.div
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
+            <AnimatePresence mode='wait'>
+              {filteredProjects.map((project) => (
+                <motion.div
+                  key={project._id}
+                  variants={item}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <ProjectCard
+                    {...project}
+                    onClick={() => setSelectedProject(project)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        ) : (
+          <div className="text-center py-20 text-muted-foreground">
+            <p>No projects found in this category.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Project Details Modal */}
+      <Dialog open={!!selectedProject} onOpenChange={(open) => !open && setSelectedProject(null)}>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden bg-card border-border">
+          {selectedProject && (
+            <div className="flex flex-col h-[85vh] md:h-auto md:max-h-[85vh]">
+
+              {/* Image Header */}
+              <div className="relative h-48 md:h-64 bg-muted shrink-0">
+                {selectedProject.imageUrl ? (
+                  <img
+                    src={selectedProject.imageUrl.startsWith('http') ? selectedProject.imageUrl : buildApiUrl(selectedProject.imageUrl)}
+                    alt={selectedProject.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground/30 text-6xl font-bold">
+                    {selectedProject.title.charAt(0)}
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+                <DialogClose className="absolute top-4 right-4 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors">
+                  <X size={20} />
+                </DialogClose>
+              </div>
+
+              <ScrollArea className="flex-1">
+                <div className="p-6 md:p-8 space-y-6">
+                  <DialogHeader>
+                    <div className="flex items-center justify-between gap-4 mb-2">
+                      <DialogTitle className="text-2xl md:text-3xl font-bold">{selectedProject.title}</DialogTitle>
+                      {selectedProject.createdAt && (
+                        <span className="text-sm text-muted-foreground flex items-center gap-1 shrink-0">
+                          <Calendar size={14} />
+                          {new Date(selectedProject.createdAt).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                    <DialogDescription className="text-base text-muted-foreground leading-relaxed text-left">
+                      {selectedProject.description}
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  {/* Tech Stack */}
+                  <div>
+                    <h4 className="text-sm font-semibold mb-3 uppercase tracking-wider text-muted-foreground">Technologies</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {(selectedProject.techStack || selectedProject.technologies || []).map((tech: string) => (
+                        <Badge key={tech} variant="secondary">
+                          {tech}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Links */}
+                  <div className="flex flex-wrap gap-4 pt-4 border-t border-border">
+                    {selectedProject.liveUrl && (
+                      <Button asChild className="rounded-full">
+                        <a href={selectedProject.liveUrl} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink size={16} className="mr-2" />
+                          Live Demo
+                        </a>
+                      </Button>
+                    )}
+                    {selectedProject.githubUrl && (
+                      <Button asChild variant="outline" className="rounded-full">
+                        <a href={selectedProject.githubUrl} target="_blank" rel="noopener noreferrer">
+                          <Github size={16} className="mr-2" />
+                          View Code
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
