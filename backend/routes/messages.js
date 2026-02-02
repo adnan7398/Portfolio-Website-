@@ -14,26 +14,26 @@ const transporter = nodemailer.createTransport({
 router.post('/', async (req, res) => {
   try {
     const { name, email, message, type } = req.body;
-  
+
     if (!name || !email || !message) {
       return res.status(400).json({ message: 'Name, email, and message are required' });
     }
-  
+
     const msg = new Message({ name, email, message, type: type || 'contact' });
     await msg.save();
-  
-    try {
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: process.env.EMAIL_USER,
-        subject: `New ${type === 'hire' ? 'Hire Me' : 'Contact'} Message from ${name}`,
-        text: `Name: ${name}\nEmail: ${email}\nType: ${type || 'contact'}\nMessage: ${message}`,
-      });
+
+    // Send email asynchronously (fire-and-forget) to avoid blocking the response
+    transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_USER,
+      subject: `New ${type === 'hire' ? 'Hire Me' : 'Contact'} Message from ${name}`,
+      text: `Name: ${name}\nEmail: ${email}\nType: ${type || 'contact'}\nMessage: ${message}`,
+    }).then(() => {
       console.log('Email notification sent successfully');
-    } catch (emailError) {
+    }).catch((emailError) => {
       console.error('Email sending failed:', emailError.message);
-    }
-    
+    });
+
     res.status(201).json({ message: 'Message sent successfully' });
   } catch (err) {
     console.error('Message creation error:', err);
