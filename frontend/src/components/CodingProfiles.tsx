@@ -25,55 +25,68 @@ const CodingProfiles = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch profile links from our backend
-                const profileRes = await fetch(buildApiUrl('/api/profile'));
-                const profileData = await profileRes.json();
-                setLinks(profileData);
+                // Helper to safely fetch JSON and check for non-JSON responses (like HTML error pages)
+                const safeFetchJson = async (url: string) => {
+                    try {
+                        const res = await fetch(url);
+                        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
-                // Fetch Codeforces rating if handle is present
-                // Extract handle from URL: https://codeforces.com/profile/quanpk07 -> quanpk07
-                // Or if user just saved 'quanpk07', work with that.
-                // Assuming the user saves the full URL as per request, but we need handle for API.
+                        const contentType = res.headers.get("content-type");
+                        if (!contentType || !contentType.includes("application/json")) {
+                            // If response is not JSON (e.g. HTML error page), return null or throw
+                            console.warn(`Expected JSON from ${url} but got ${contentType}`);
+                            return null;
+                        }
 
-                let cfHandle = '';
-                if (profileData.codeforces) {
-                    const parts = profileData.codeforces.split('/');
-                    cfHandle = parts[parts.length - 1] || parts[parts.length - 2]; // handle trailing slash
-                }
-
-                if (cfHandle) {
-                    const cfRes = await fetch(`https://codeforces.com/api/user.rating?handle=${cfHandle}`);
-                    const cfData = await cfRes.json();
-                    if (cfData.status === 'OK') {
-                        const formattedData = cfData.result.map((contest: any) => ({
-                            contest: contest.contestName,
-                            rating: contest.newRating,
-                            date: new Date(contest.ratingUpdateTimeSeconds * 1000).toLocaleDateString()
-                        }));
-                        setRatingData(formattedData);
+                        return await res.json();
+                    } catch (e) {
+                        console.error(`Failed to fetch from ${url}:`, e);
+                        return null;
                     }
-                }
+                };
 
-                // Fetch LeetCode submission stats
-                let lcUsername = '';
-                if (profileData.leetcode) {
-                    // Extract username from "https://leetcode.com/u/adnan7398/" -> "adnan7398"
-                    // Also handle "https://leetcode.com/adnan7398/"
-                    const parts = profileData.leetcode.split('/').filter((p: string) => p);
-                    lcUsername = parts[parts.length - 1];
-                }
+                // Fetch profile links from our backend
+                const profileData = await safeFetchJson(buildApiUrl('/api/profile'));
+                if (profileData) {
+                    setLinks(profileData);
 
-                if (lcUsername) {
-                    const lcRes = await fetch(`https://leetcode-stats-api.herokuapp.com/${lcUsername}`);
-                    const lcData = await lcRes.json();
-                    if (lcData.status === 'success' && lcData.submissionCalendar) {
-                        const calendar = lcData.submissionCalendar; // { timestamp: count }
-                        const formattedLcData = Object.keys(calendar).map(timestamp => ({
-                            date: new Date(parseInt(timestamp) * 1000).toLocaleDateString(),
-                            timestamp: parseInt(timestamp),
-                            count: calendar[timestamp]
-                        })).sort((a, b) => a.timestamp - b.timestamp);
-                        setLeetCodeData(formattedLcData);
+                    // Fetch Codeforces rating
+                    let cfHandle = '';
+                    if (profileData.codeforces) {
+                        const parts = profileData.codeforces.split('/');
+                        cfHandle = parts[parts.length - 1] || parts[parts.length - 2];
+                    }
+
+                    if (cfHandle) {
+                        const cfData = await safeFetchJson(`https://codeforces.com/api/user.rating?handle=${cfHandle}`);
+                        if (cfData && cfData.status === 'OK') {
+                            const formattedData = cfData.result.map((contest: any) => ({
+                                contest: contest.contestName,
+                                rating: contest.newRating,
+                                date: new Date(contest.ratingUpdateTimeSeconds * 1000).toLocaleDateString()
+                            }));
+                            setRatingData(formattedData);
+                        }
+                    }
+
+                    // Fetch LeetCode submission stats
+                    let lcUsername = '';
+                    if (profileData.leetcode) {
+                        const parts = profileData.leetcode.split('/').filter((p: string) => p);
+                        lcUsername = parts[parts.length - 1];
+                    }
+
+                    if (lcUsername) {
+                        const lcData = await safeFetchJson(`https://leetcode-stats-api.herokuapp.com/${lcUsername}`);
+                        if (lcData && lcData.status === 'success' && lcData.submissionCalendar) {
+                            const calendar = lcData.submissionCalendar;
+                            const formattedLcData = Object.keys(calendar).map(timestamp => ({
+                                date: new Date(parseInt(timestamp) * 1000).toLocaleDateString(),
+                                timestamp: parseInt(timestamp),
+                                count: calendar[timestamp]
+                            })).sort((a, b) => a.timestamp - b.timestamp);
+                            setLeetCodeData(formattedLcData);
+                        }
                     }
                 }
             } catch (error) {
