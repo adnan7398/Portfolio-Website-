@@ -18,10 +18,13 @@ export const API_BASE_URL: string = (() => {
   }
 
   // 2. Check for explicit env var (allow override via VITE_API_URL)
-  // We filter out 'vercel.app' URLs because that's often the frontend URL, not the backend
   const envUrl = import.meta.env.VITE_API_URL as string | undefined;
-  if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0 && !envUrl.includes('vercel.app')) {
-    return envUrl.replace(/\/$/, '');
+  if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0) {
+    let url = envUrl.trim().replace(/\/$/, '');
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = `https://${url}`;
+    }
+    return url;
   }
 
   // 3. Default to the known working Production Backend
