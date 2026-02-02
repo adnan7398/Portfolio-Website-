@@ -19,7 +19,7 @@ export const API_BASE_URL: string = (() => {
 
   // 2. Check for explicit env var (allow override via VITE_API_URL)
   const envUrl = import.meta.env.VITE_API_URL as string | undefined;
-  if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0) {
+  if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0 && !envUrl.includes('vercel.app')) {
     let url = envUrl.trim().replace(/\/$/, '');
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       url = `https://${url}`;
