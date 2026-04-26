@@ -35,6 +35,11 @@ app.use(cors({
       return callback(null, true);
     }
 
+    // Allow EC2 deployment (any IP-based origin)
+    if (/^https?:\/\/\d+\.\d+\.\d+\.\d+(:\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
+
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
