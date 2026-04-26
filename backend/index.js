@@ -16,6 +16,8 @@ app.use(cors({
       'http://localhost:8080',
       'http://localhost:3000',
       'http://localhost:5173', // Vite dev server
+      'https://adnan-portfolio.duckdns.org',
+      'http://adnan-portfolio.duckdns.org',
       'https://portfolio-website-ruddy-kappa-93.vercel.app',
       'https://portfolio-website-git-main-adnans-projects-c715e72e.vercel.app'
     ];
