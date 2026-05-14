@@ -77,7 +77,7 @@ cd ..
 echo ""
 echo "📦 [7/7] Setting up backend environment..."
 cat > backend/.env << 'ENVEOF'
-MONGODB_URI=mongodb+srv://123adnansiddiqui:781786@cluster0.6n71fln.mongodb.net/porfolio
+MONGODB_URI=mongodb+srv://123adnansiddiqui:781786Aa@cluster0.6n71fln.mongodb.net/porfolio
 JWT_SECRET=mysecretkey123
 EMAIL_USER=123adnansiddiqui@gmail.com
 EMAIL_PASS="urls gevu rksz tedu"
